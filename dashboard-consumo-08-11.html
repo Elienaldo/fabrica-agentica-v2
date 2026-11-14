@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de consumo da Fábrica Agêntica — 8 de novembro de 2026</title>
+<style>
+  :root {
+    --bg: #0b1016;
+    --bg-card: #141b24;
+    --bg-soft: #1a2330;
+    --line: #2a3544;
+    --text: #e8eef6;
+    --muted: #9aa8b8;
+    --cache: #3b82c4;
+    --fresh: #d4a017;
+    --write: #6b7c8f;
+    --peak: #e07a2f;
+    --event: #e35d6a;
+    --ok: #7dcea0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+  h1 {
+    font-size: 1.7rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 650;
+    margin: 0 0 12px;
+  }
+  p { margin: 0 0 12px; color: var(--text); }
+  .lead, .meta, .nota, figcaption, th, .muted { color: var(--muted); }
+  .meta { font-size: 0.92rem; margin-bottom: 24px; }
+  section {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 22px 18px;
+    margin: 0 0 20px;
+  }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 0 0 20px;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+  .kpi {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .kpi .v {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    margin-top: 4px;
+  }
+  .kpi .l { font-size: 0.82rem; color: var(--muted); }
+  .conclusao {
+    border-color: #3a4a2e;
+    background: #142016;
+  }
+  .conclusao h2 { color: var(--ok); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th { font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 20px;
+    margin: 8px 0 14px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .sw-cache { background: var(--cache); }
+  .sw-fresh { background: var(--fresh); }
+  .sw-write { background: var(--write); }
+  .sw-peak { background: var(--peak); }
+  .sw-event { background: var(--event); }
+  svg .grid { stroke: #243040; stroke-width: 1; }
+  svg .axis { stroke: #4a5a6c; stroke-width: 1; }
+  svg .tick, svg .xlab, svg .ylab, svg .barlab, svg .anno, svg .axis-title {
+    fill: var(--muted);
+    font-size: 11px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  svg .ylab, svg .barlab { fill: var(--text); font-size: 11px; }
+  svg .peak-label, svg .event-label { fill: var(--text); font-weight: 650; }
+  svg .line { stroke: #7eb6d9; stroke-width: 2; }
+  svg .peak-band { fill: rgba(224, 122, 47, 0.22); }
+  svg .peak-dot { fill: var(--peak); stroke: #0b1016; stroke-width: 1.5; }
+  svg .event-line { stroke: var(--event); stroke-width: 1.4; stroke-dasharray: 4 3; }
+  svg .event-dot { fill: var(--event); stroke: #0b1016; stroke-width: 1.5; }
+  .wrap { overflow-x: auto; }
+  footer { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  code { font-family: Consolas, "Segoe UI Mono", monospace; font-size: 0.9em; }
+  @media (max-width: 800px) {
+    .kpis { grid-template-columns: 1fr 1fr; }
+    main { padding: 20px 14px 48px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Painel de consumo da Fábrica Agêntica — 8 de novembro de 2026</h1>
+    <p class="meta">
+      Fonte: CSV de uso do Cursor, só as requisições do dia 8 de novembro de 2026 em America/Bahia (UTC-3): 2.917 eventos, das 00h00:01 às 20h42:15.
+      Horários do CSV (UTC) convertidos para este fuso.
+      Total = prompt + cache lido + cache escrito + saída.
+      Sem cache = prompt + saída.
+    </p>
+  </header>
+
+  <section class="conclusao" id="conclusao">
+    <h2>Conclusão</h2>
+    <p>No dia 8, o gasto é sobretudo cache relido: 334.844.519 de 356.457.528 tokens (93,9%). Encurtar o contexto e evitar refazer ciclos é o que mais economiza.</p>
+  </section>
+
+  <section class="kpis" aria-label="Indicadores do dia 8">
+    <div class="kpi"><span class="l">Total do dia 8</span><span class="v">356.457.528</span></div>
+    <div class="kpi"><span class="l">Cache lido no dia</span><span class="v">93,9%</span></div>
+    <div class="kpi"><span class="l">Sem cache</span><span class="v">9.395.897</span></div>
+    <div class="kpi"><span class="l">Pico horário</span><span class="v">02h–03h</span></div>
+  </section>
+
+  <section id="ranking">
+    <h2>Ranking por produto e modelo</h2>
+    <ul class="legend">
+      <li><i class="sw-cache"></i>Cache lido</li>
+      <li><i class="sw-fresh"></i>Sem cache (prompt + saída)</li>
+      <li><i class="sw-write"></i>Cache escrito</li>
+    </ul>
+    <div class="wrap"><svg viewBox="0 0 920 230" width="100%" role="img" aria-label="Ranking por produto e modelo no dia 8">
+<line x1="250.0" y1="16" x2="250.0" y2="194" class="grid"/>
+<text x="250.0" y="220" class="tick" text-anchor="middle">0</text>
+<line x1="407.5" y1="16" x2="407.5" y2="194" class="grid"/>
+<text x="407.5" y="220" class="tick" text-anchor="middle">57,9 mi</text>
+<line x1="565.0" y1="16" x2="565.0" y2="194" class="grid"/>
+<text x="565.0" y="220" class="tick" text-anchor="middle">115,7 mi</text>
+<line x1="722.5" y1="16" x2="722.5" y2="194" class="grid"/>
+<text x="722.5" y="220" class="tick" text-anchor="middle">173,6 mi</text>
+<line x1="880.0" y1="16" x2="880.0" y2="194" class="grid"/>
+<text x="880.0" y="220" class="tick" text-anchor="middle">231,5 mi</text>
+<rect x="250.0" y="26.0" width="592.3" height="37.3" rx="3" fill="var(--cache)"><title>Cache lido: 217.604.839</title></rect>
+<rect x="842.3" y="26.0" width="4.5" height="37.3" rx="3" fill="var(--fresh)"><title>Sem cache: 1.651.709</title></rect>
+<rect x="846.7" y="26.0" width="33.3" height="37.3" rx="3" fill="var(--write)"><title>Cache escrito: 12.217.112</title></rect>
+<text x="238" y="48.7" class="ylab" text-anchor="end">grok-bot / não informado</text>
+<text x="888.0" y="48.7" class="barlab">231.473.660</text>
+<rect x="250.0" y="85.3" width="318.6" height="37.3" rx="3" fill="var(--cache)"><title>Cache lido: 117.049.984</title></rect>
+<rect x="568.6" y="85.3" width="20.8" height="37.3" rx="3" fill="var(--fresh)"><title>Sem cache: 7.657.991</title></rect>
+<text x="238" y="108.0" class="ylab" text-anchor="end">cursor / grok-4.7-high-fast</text>
+<text x="597.4" y="108.0" class="barlab">124.707.975</text>
+<rect x="250.0" y="144.7" width="0.5" height="37.3" rx="3" fill="var(--cache)"><title>Cache lido: 189.696</title></rect>
+<rect x="250.5" y="144.7" width="0.2" height="37.3" rx="3" fill="var(--fresh)"><title>Sem cache: 86.197</title></rect>
+<text x="238" y="167.3" class="ylab" text-anchor="end">cursor / grok-4.7-high</text>
+<text x="258.8" y="167.3" class="barlab">275.893</text>
+</svg></div>
+    <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Produto</th>
+          <th>Modelo</th>
+          <th class="num">Eventos</th>
+          <th class="num">Total</th>
+          <th class="num">Cache lido</th>
+          <th class="num">Sem cache</th>
+          <th class="num">Fatia do dia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+      <td>1</td>
+      <td>grok-bot</td>
+      <td>não informado</td>
+      <td class="num">2.228</td>
+      <td class="num">231.473.660</td>
+      <td class="num">217.604.839</td>
+      <td class="num">1.651.709</td>
+      <td class="num">64,9%</td>
+    </tr>
+<tr>
+      <td>2</td>
+      <td>cursor</td>
+      <td>grok-4.7-high-fast</td>
+      <td class="num">683</td>
+      <td class="num">124.707.975</td>
+      <td class="num">117.049.984</td>
+      <td class="num">7.657.991</td>
+      <td class="num">35,0%</td>
+    </tr>
+<tr>
+      <td>3</td>
+      <td>cursor</td>
+      <td>grok-4.7-high</td>
+      <td class="num">6</td>
+      <td class="num">275.893</td>
+      <td class="num">189.696</td>
+      <td class="num">86.197</td>
+      <td class="num">0,1%</td>
+    </tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="nota">Modelo vazio no CSV entra como “não informado”. Isso vale para todas as 2.228 linhas de grok-bot neste dia. Não houve eventos de composer-2.5-fast no dia 8.</p>
+  </section>
+
+  <section id="por-hora">
+    <h2>Tokens por hora</h2>
+    <p class="nota">Eixo X: horário em America/Bahia, 8 de novembro de 2026. Eixo Y: tokens. Horas sem evento entram como zero.</p>
+    <ul class="legend">
+      <li><i class="sw-peak"></i>Pico, 02h–03h — research e plan do 2º ciclo (64.436.764 tokens)</li>
+      <li><i class="sw-event"></i>Maior evento isolado, 18h42 — abertura do PR 5 (374.247 tokens)</li>
+    </ul>
+    <div class="wrap"><svg viewBox="0 0 1000 380" width="100%" role="img" aria-label="Tokens por hora em 8 de novembro de 2026, America/Bahia">
+<line x1="72" y1="324.0" x2="972" y2="324.0" class="grid"/>
+<text x="64" y="328.0" class="tick" text-anchor="end">0 mi</text>
+<line x1="72" y1="282.9" x2="972" y2="282.9" class="grid"/>
+<text x="64" y="286.9" class="tick" text-anchor="end">10 mi</text>
+<line x1="72" y1="241.7" x2="972" y2="241.7" class="grid"/>
+<text x="64" y="245.7" class="tick" text-anchor="end">20 mi</text>
+<line x1="72" y1="200.6" x2="972" y2="200.6" class="grid"/>
+<text x="64" y="204.6" class="tick" text-anchor="end">30 mi</text>
+<line x1="72" y1="159.4" x2="972" y2="159.4" class="grid"/>
+<text x="64" y="163.4" class="tick" text-anchor="end">40 mi</text>
+<line x1="72" y1="118.3" x2="972" y2="118.3" class="grid"/>
+<text x="64" y="122.3" class="tick" text-anchor="end">50 mi</text>
+<line x1="72" y1="77.1" x2="972" y2="77.1" class="grid"/>
+<text x="64" y="81.1" class="tick" text-anchor="end">60 mi</text>
+<line x1="72" y1="36.0" x2="972" y2="36.0" class="grid"/>
+<text x="64" y="40.0" class="tick" text-anchor="end">70 mi</text>
+<rect x="150.3" y="36" width="39.1" height="288" class="peak-band"/>
+<polyline points="72.00,140.09 111.13,237.43 150.26,58.89 189.39,288.03 228.52,324.00 267.65,324.00 306.78,324.00 345.91,323.60 385.04,324.00 424.17,240.89 463.30,152.75 502.43,188.04 541.57,266.79 580.70,308.10 619.83,299.28 658.96,241.45 698.09,324.00 737.22,312.83 776.35,225.07 815.48,216.46 854.61,217.74 893.74,324.00 932.87,324.00 972.00,324.00" class="line" fill="none"/>
+<circle cx="150.3" cy="58.9" r="5.5" class="peak-dot"/>
+<text x="160.3" y="52.0" class="anno peak-label">Pico 8/11, 02h–03h</text>
+<text x="160.3" y="68.0" class="anno">64.436.764 tokens — research e plan do 2º ciclo</text>
+<line x1="803.7" y1="36" x2="803.7" y2="324" class="event-line"/>
+<circle cx="803.7" cy="225.1" r="4.5" class="event-dot"/>
+<text x="795.7" y="197.1" class="anno event-label" text-anchor="end">Maior evento isolado, 18h42</text>
+<text x="795.7" y="211.1" class="anno" text-anchor="end">abertura do PR 5 · 374.247 tokens</text>
+<line x1="72.0" y1="324" x2="72.0" y2="330" class="axis"/>
+<text x="72.0" y="346.0" class="xlab" text-anchor="middle">00h</text>
+<line x1="189.4" y1="324" x2="189.4" y2="330" class="axis"/>
+<text x="189.4" y="346.0" class="xlab" text-anchor="middle">03h</text>
+<line x1="306.8" y1="324" x2="306.8" y2="330" class="axis"/>
+<text x="306.8" y="346.0" class="xlab" text-anchor="middle">06h</text>
+<line x1="424.2" y1="324" x2="424.2" y2="330" class="axis"/>
+<text x="424.2" y="346.0" class="xlab" text-anchor="middle">09h</text>
+<line x1="541.6" y1="324" x2="541.6" y2="330" class="axis"/>
+<text x="541.6" y="346.0" class="xlab" text-anchor="middle">12h</text>
+<line x1="659.0" y1="324" x2="659.0" y2="330" class="axis"/>
+<text x="659.0" y="346.0" class="xlab" text-anchor="middle">15h</text>
+<line x1="776.3" y1="324" x2="776.3" y2="330" class="axis"/>
+<text x="776.3" y="346.0" class="xlab" text-anchor="middle">18h</text>
+<line x1="893.7" y1="324" x2="893.7" y2="330" class="axis"/>
+<text x="893.7" y="346.0" class="xlab" text-anchor="middle">21h</text>
+<text x="150.3" y="362.0" class="xlab peak-label" text-anchor="middle">02h</text>
+<line x1="72" y1="36" x2="72" y2="324" class="axis"/>
+<line x1="72" y1="324" x2="972" y2="324" class="axis"/>
+<text x="16" y="180.0" class="axis-title" transform="rotate(-90 16 180.0)" text-anchor="middle">Tokens</text>
+<text x="522.0" y="372" class="axis-title" text-anchor="middle">Horário em America/Bahia (UTC-3), 8 de novembro de 2026</text>
+</svg></div>
+  </section>
+
+  <section id="nao-medidos">
+    <h2>O que este painel não mede</h2>
+    <p>Este painel vem do CSV do Cursor, recortado ao dia 8 de novembro de 2026 em America/Bahia. O arquivo <code>logs\consumo-tokens.jsonl</code> ainda não existe. Sem ele, não há medição própria da Fábrica, linha a linha, por bot, fase ou sessão.</p>
+    <p>O CSV distingue o produto <code>grok-bot</code> do produto <code>cursor</code>, mas não nomeia qual bot gerou cada linha de <code>grok-bot</code> e não separa agente em nuvem de IDE dentro de <code>cursor</code>. A exportação deste dia termina às 20h42 America/Bahia; não há eventos depois disso neste recorte.</p>
+  </section>
+
+  <footer>
+    Gerado a partir do CSV de uso do Cursor, só com as requisições do dia 8 de novembro de 2026 em America/Bahia.
+    O cache lido neste dia é 93,9% de 356.457.528.
+  </footer>
+</main>
+</body>
+</html>

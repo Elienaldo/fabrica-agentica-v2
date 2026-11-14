@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fábrica Agêntica V2</title>
+<style>:root{--bg:#0b0d12;--ink:#e5e7eb;--mut:#9ca3af;--todo:#8eb4da;--doing:#fabe3a;--done:#3ed39b}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 24px;background:#11141b;border-bottom:1px solid #262c38}
+h1{font-size:20px;margin:0;flex:1;color:#f3f4f6}h1 small{color:var(--mut);font-weight:400;font-size:13px;margin-left:8px}
+button{border:1px solid #333b4a;border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer;background:#1a1f2a;color:var(--ink)}
+button.pri{background:#3d6ea3;border-color:#3d6ea3;color:#fff}button:hover{filter:brightness(1.15)}
+.board{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:18px;padding:22px 24px}
+.col{background:var(--colbg);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;min-height:60vh;border-top:4px solid var(--c)}
+.col.drag{outline:2px dashed #f8fafc;outline-offset:-6px}
+.col h2{font-size:17px;margin:4px 6px 12px;display:flex;justify-content:space-between;color:var(--c)}
+.col h2 span{background:var(--c);color:#0b0d12;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}
+.card{background:var(--cardbg);color:#e5e7eb;border:1px solid rgba(255,255,255,.1);border-left:4px solid var(--c);border-radius:10px;padding:10px 12px;margin-bottom:10px;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:grab}
+.card.done .ttl{text-decoration:line-through;color:#9ca3af}
+.row{display:flex;align-items:center;gap:8px}
+.row input[type=checkbox]{width:18px;height:18px;accent-color:var(--done)}
+.ttl{flex:1;font-weight:600;outline:none;border-radius:4px;padding:2px;color:#f3f4f6;font-size:16px}
+.ttl:focus,.obs:focus{background:rgba(0,0,0,.3);box-shadow:0 0 0 2px #7ea2cf}
+.ver{display:flex;align-items:center;gap:4px;font-size:13px;color:#cbd5e1}
+.ver b{background:#252c38;color:var(--c);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:2px 7px;font-size:12px}
+.ver button{padding:2px 7px;font-size:12px;background:#1a1f2a;color:#e5e7eb;border-color:rgba(255,255,255,.15)}
+.obs{width:100%;margin-top:8px;background:#272f3b;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px;font:inherit;font-size:15px;resize:vertical;min-height:60px;color:#e5e7eb}
+.obs::placeholder{color:#aab3c1}
+.meta{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:#c3cad5}
+.meta button{background:none;border:0;padding:0;color:#f66f73;font-size:11px}
+.hist{font-size:12px;color:#cbd5e1;margin-top:4px}
+</style></head><body>
+<header><h1>Fábrica Agêntica V2<small id="st">salvo automaticamente neste navegador</small></h1>
+<button class="pri" onclick="addCard()">+ Novo card</button>
+<button onclick="exportar()">Exportar JSON</button>
+<button onclick="document.getElementById('imp').click()">Importar JSON</button>
+<input id="imp" type="file" accept=".json" hidden onchange="importar(this)">
+</header>
+<main class="board" id="board"></main>
+<script>
+const KEY='fabrica-v2-checklist';
+const COLS=[['todo','A Fazer','--todo','#141821','#3b4658'],['doing','Em Andamento','--doing','#141821','#3b4658'],['done','Pronto','--done','#141821','#3b4658']];
+const INICIAIS=['Setup do repositório','Bot único por feature (dono da feature)','Bot fixo de entrada e limpeza','Grupos/sessões novas por fase','Handoff enxuto','Comunicação com o modelo do Cursor','Comunicação com o humano','Fase research','Fase plan','Fase implement','Fase review','Remoção dos bots orquestradores redundantes'];
+const hoje=()=>new Date().toLocaleString('pt-BR');
+let store=null;try{store=window.localStorage;store.getItem(KEY)}catch(e){store=null}
+function load(){try{return store?JSON.parse(store.getItem(KEY)||'null'):null}catch(e){return null}}
+let cards=load()||INICIAIS.map((t,i)=>({id:Date.now()+i,title:t,col:'todo',done:false,obs:'',ver:1,hist:[]}));
+const save=()=>{try{if(store)store.setItem(KEY,JSON.stringify(cards))}catch(e){}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(){const b=document.getElementById('board');b.innerHTML='';
+ for(const[k,n,v,bg,cbg]of COLS){const c=document.createElement('section');c.className='col';c.style.setProperty('--c',`var(${v})`);c.style.setProperty('--colbg',bg);c.style.setProperty('--cardbg',cbg);
+  const list=cards.filter(x=>x.col===k);c.innerHTML=`<h2>${n}<span>${list.length}</span></h2>`;
+  c.ondragover=e=>{e.preventDefault();c.classList.add('drag')};c.ondragleave=()=>c.classList.remove('drag');
+  c.ondrop=e=>{e.preventDefault();const id=+e.dataTransfer.getData('id');const x=cards.find(y=>y.id===id);if(x){x.col=k;x.done=k==='done';save();render()}};
+  for(const x of list){const d=document.createElement('div');d.className='card'+(x.done?' done':'');d.draggable=true;d.style.setProperty('--c',`var(${v})`);
+   d.ondragstart=e=>e.dataTransfer.setData('id',x.id);
+   d.innerHTML=`<div class="row"><input type="checkbox" ${x.done?'checked':''}><div class="ttl" contenteditable>${esc(x.title)}</div>
+   <div class="ver"><b>v${x.ver}</b><button title="Nova versão">+</button></div></div>
+   <textarea class="obs" placeholder="Observação: o que aconteceu...">${esc(x.obs)}</textarea>
+   ${x.hist.length?`<div class="hist">${x.hist.slice(-3).map(h=>'v'+h.v+' · '+h.em).join(' — ')}</div>`:''}
+   <div class="meta"><span>${x.upd?'atualizado '+x.upd:''}</span><button>remover</button></div>`;
+   const [cb]=d.querySelectorAll('input');cb.onchange=()=>{x.done=cb.checked;x.col=cb.checked?'done':(x.col==='done'?'doing':x.col);x.upd=hoje();save();render()};
+   const t=d.querySelector('.ttl');t.onblur=()=>{x.title=t.textContent.trim()||x.title;x.upd=hoje();save()};
+   const o=d.querySelector('.obs');o.oninput=()=>{x.obs=o.value;x.upd=hoje();save()};
+   d.querySelector('.ver button').onclick=()=>{x.hist.push({v:x.ver,em:hoje(),obs:x.obs});x.ver++;x.upd=hoje();save();render()};
+   d.querySelector('.meta button').onclick=()=>{if(confirm('Remover este card?')){cards=cards.filter(y=>y!==x);save();render()}};
+   c.appendChild(d)}
+  b.appendChild(c)}}
+function addCard(){const t=prompt('Título do card:');if(!t)return;cards.push({id:Date.now(),title:t,col:'todo',done:false,obs:'',ver:1,hist:[]});save();render()}
+function exportar(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(cards,null,2)],{type:'application/json'}));a.download='checklist-v2-'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function importar(i){const f=i.files[0];if(!f)return;f.text().then(s=>{cards=JSON.parse(s);save();render()})}
+try{render()}catch(e){document.getElementById('board').innerHTML='<p style="padding:20px;color:#f87171">Erro ao montar o painel: '+e.message+'</p>'}
+if(!store)document.getElementById('st').textContent='aviso: este visualizador bloqueia o salvamento; abra no Chrome e use Exportar JSON';
+</script><noscript><p style="padding:24px">Este painel precisa de JavaScript. Abra o arquivo no Chrome.</p></noscript></body></html>
