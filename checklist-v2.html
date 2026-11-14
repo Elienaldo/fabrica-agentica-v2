@@ -57,6 +57,10 @@ for(const m of ADD){let feito=false;try{feito=store&&store.getItem(KEY+':'+m.k)}
  if(!feito){const x=cards.find(y=>y.title==='Supervisor');if(x){x.hist.push({v:x.ver,em:'13/11/2026, 22:51:00',obs:x.obs});x.ver++;x.title='Supervisor (assumido pelo Dr. Eggbot)';
  x.obs='Decisão de 13/11/2026 (Elienaldo): não haverá Supervisor como bot separado. O Dr. Eggbot assume a função: recebe as demandas do humano e solicita a criação da sessão, do bot responsável pela feature e da feature. Ele passa a ter essa função além de criar bots.';x.upd='13/11/2026, 22:51:00'}
  try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(k,'1')}}catch(e){}}}
+{const k=KEY+':eggbot-adapt-20261113';let feito=false;try{feito=store&&store.getItem(k)}catch(e){}
+ if(!feito){const x=cards.find(y=>y.title==='Supervisor (assumido pelo Dr. Eggbot)');if(x){x.col='done';x.done=true;x.upd='13/11/2026, 22:52:00'}
+ if(!cards.some(y=>y.title==='Adaptação do Dr. Eggbot'))cards.unshift({id:Date.now()+1999,title:'Adaptação do Dr. Eggbot',col:'todo',done:false,obs:'Dr. Eggbot passa a receber demandas do humano, disparar criação de sessão e de feature, e criar o bot único da feature. Função antes prevista para o Supervisor.',ver:1,hist:[],upd:'13/11/2026, 22:52:00'});
+ try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(k,'1')}}catch(e){}}}
 const save=()=>{try{if(store)store.setItem(KEY,JSON.stringify(cards))}catch(e){}};
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function render(){const b=document.getElementById('board');b.innerHTML='';
