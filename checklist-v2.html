@@ -61,6 +61,11 @@ for(const m of ADD){let feito=false;try{feito=store&&store.getItem(KEY+':'+m.k)}
  if(!feito){const x=cards.find(y=>y.title==='Supervisor (assumido pelo Dr. Eggbot)');if(x){x.col='done';x.done=true;x.upd='13/11/2026, 22:52:00'}
  if(!cards.some(y=>y.title==='Adaptação do Dr. Eggbot'))cards.unshift({id:Date.now()+1999,title:'Adaptação do Dr. Eggbot',col:'todo',done:false,obs:'Dr. Eggbot passa a receber demandas do humano, disparar criação de sessão e de feature, e criar o bot único da feature. Função antes prevista para o Supervisor.',ver:1,hist:[],upd:'13/11/2026, 22:52:00'});
  try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(k,'1')}}catch(e){}}}
+{const k=KEY+':supervisor-start-bots-20261113';let feito=false;try{feito=store&&store.getItem(k)}catch(e){}
+ if(!feito){cards=cards.filter(y=>y.title!=='Adaptação do Dr. Eggbot');
+ const x=cards.find(y=>y.title==='Supervisor (assumido pelo Dr. Eggbot)');if(x){x.hist.push({v:x.ver,em:'13/11/2026, 22:54:00',obs:x.obs});x.ver++;x.title='Supervisor (start + criação de bots)';
+ x.obs='Decisão de 13/11/2026 (Elienaldo), que substitui a anterior do mesmo dia: o Supervisor assume o start (recebe as demandas do humano e solicita a criação da sessão e da feature) e também a criação de bots, trazendo para dentro dele as skills e funcionalidades do Dr. Eggbot. O Dr. Eggbot fica só para criar bots avulsos quando o Elienaldo pedir, fora do fluxo da fábrica. Mudança em relação à anterior: o start não vai mais para o Dr. Eggbot, e a adaptação dele foi cancelada. Motivo: evitar um bot com duas funções, economizar tokens e deixar o Eggbot livre para uso avulso.';x.col='done';x.done=true;x.upd='13/11/2026, 22:54:00'}
+ try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(k,'1')}}catch(e){}}}
 const save=()=>{try{if(store)store.setItem(KEY,JSON.stringify(cards))}catch(e){}};
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function render(){const b=document.getElementById('board');b.innerHTML='';
