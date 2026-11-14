@@ -50,6 +50,9 @@ const ADD=[{k:'add-supervisor-20261113',t:'Supervisor',obs:'Bot fixo. Ponto de e
 for(const m of ADD){let feito=false;try{feito=store&&store.getItem(KEY+':'+m.k)}catch(e){}
  if(!feito){if(!cards.some(y=>y.title===m.t))cards.push({id:Date.now()+999,title:m.t,col:'todo',done:false,obs:m.obs,ver:1,hist:[],upd:'13/11/2026, 22:43:00'});
  try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(KEY+':'+m.k,'1')}}catch(e){}}}
+{const k=KEY+':top-supervisor-20261113';let feito=false;try{feito=store&&store.getItem(k)}catch(e){}
+ if(!feito){const i=cards.findIndex(y=>y.title==='Supervisor');if(i>0){const [x]=cards.splice(i,1);cards.unshift(x)}
+ try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(k,'1')}}catch(e){}}}
 const save=()=>{try{if(store)store.setItem(KEY,JSON.stringify(cards))}catch(e){}};
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function render(){const b=document.getElementById('board');b.innerHTML='';
