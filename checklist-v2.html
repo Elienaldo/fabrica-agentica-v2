@@ -42,6 +42,10 @@ const hoje=()=>new Date().toLocaleString('pt-BR');
 let store=null;try{store=window.localStorage;store.getItem(KEY)}catch(e){store=null}
 function load(){try{return store?JSON.parse(store.getItem(KEY)||'null'):null}catch(e){return null}}
 let cards=load()||INICIAIS.map((t,i)=>({id:Date.now()+i,title:t,col:'todo',done:false,obs:'',ver:1,hist:[]}));
+const MIG=[{k:'mig-setup-repo-20261113',t:'Setup do repositório',obs:'Repositório criado em 13/11/2026: github.com/Elienaldo/fabrica-agentica-v2 (público), commit inicial ddab017 com push na main.'}];
+for(const m of MIG){let feito=false;try{feito=store&&store.getItem(KEY+':'+m.k)}catch(e){}
+ if(!feito){const x=cards.find(y=>y.title===m.t);if(x&&x.col!=='done'){x.col='done';x.done=true;x.obs=x.obs?x.obs+'\n'+m.obs:m.obs;x.upd='13/11/2026, 22:38:00'}
+ try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(KEY+':'+m.k,'1')}}catch(e){}}}
 const save=()=>{try{if(store)store.setItem(KEY,JSON.stringify(cards))}catch(e){}};
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function render(){const b=document.getElementById('board');b.innerHTML='';
