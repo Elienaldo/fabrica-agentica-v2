@@ -14,7 +14,7 @@
 ## 2. Fluxo completo, passo a passo
 
 1. O Dev Expresso (ou o Orquestrador, nas fases) pede ao Supervisor uma execução, com `request_id`, slug, fase e o texto do pedido.
-2. O Supervisor resolve o workspace do projeto e confere as regras (skill `supervisor-operacao-cursor`: modelo com créditos esgotados, política de VM etc.).
+2. O Supervisor resolve o workspace do projeto e confere as regras (skill `arquiteto-operacao-cursor`: modelo com créditos esgotados, política de VM etc.).
 3. O Supervisor lança o agente no Cursor, informando repositório, título e prompt. O título segue o padrão `slug-fase-request_id`. O prompt manda trabalhar numa branch padronizada com data, por solicitação (exemplos reais: `fix/20261103-versao-adega-v1-1`, `feat/YYYYMMDD-nome-da-task`), nunca na main, e não abrir PR nem fazer merge sem ordem do Elienaldo (regra do caminho rápido; no fluxo padrão, o push ao final da implement segue a seção 8).
 4. O Cursor devolve o **ID do agente** (`bc-…`). O Supervisor grava no livro-razão, junto do pedido: `request_id`, slug, fase e **ID do agente**. Sem essa gravação não há casamento.
 5. O agente trabalha na VM do Cursor. A varredura de status (seção 6) acompanha pelo ID de cada pedido aberto.
@@ -73,7 +73,7 @@ A branch `fix/20261103-versao-adega-v1-1` está no remoto, com o commit `44836f8
 
 ## 5. Pedido órfão (notificação sem casamento)
 
-Regra oficial, seção 9 da skill `supervisor-operacao-cursor`:
+Regra oficial, seção 9 da skill `arquiteto-operacao-cursor`:
 
 - Se a notificação chegar e o ID do agente não casar com nenhum registro do livro-razão (ID não encontrado ou gravação que falhou no lançamento), o Supervisor **avisa o Elienaldo**, no chat dele, com os dados da notificação: branch, commit, arquivos e o link com o ID do agente.
 - **Nunca entrega a ninguém sem casamento único.**
@@ -103,7 +103,7 @@ Decidido em 2026-11-05.
 4. O Supervisor, sabendo que o PR foi criado, avisa o Orquestrador de pipeline que a fase de implementação foi finalizada e que o PR existe, com o número do PR.
 5. O Orquestrador pede ao Supervisor que crie uma nova sessão no Cursor e inicie a fase de review, pedindo o comando da `the-judge` com o número do PR.
 
-**Push e PR não conflitam com a regra de não abrir PR sem ordem.** O push vai sempre para a branch da task (`feat/` ou `fix/YYYYMMDD-nome-da-task`) e nunca para a `main`. A regra do prompt de lançamento, de não abrir PR nem fazer merge sem ordem do Elienaldo, vale para o caminho rápido (Dev Expresso) e para qualquer ação fora desta cadeia. No fluxo padrão, a orientação de push vem do Supervisor no pedido da fase de implementação (seção 12 de `supervisor-review-merge`), e o merge continua sendo disparado só pelo Orquestrador, depois da review.
+**Push e PR não conflitam com a regra de não abrir PR sem ordem.** O push vai sempre para a branch da task (`feat/` ou `fix/YYYYMMDD-nome-da-task`) e nunca para a `main`. A regra do prompt de lançamento, de não abrir PR nem fazer merge sem ordem do Elienaldo, vale para o caminho rápido (Dev Expresso) e para qualquer ação fora desta cadeia. No fluxo padrão, a orientação de push vem do Supervisor no pedido da fase de implementação (seção 12 de `arquiteto-review-merge`), e o merge continua sendo disparado só pelo Orquestrador, depois da review.
 
 **A confirmar no teste real:** o mecanismo que cria o PR a partir do push (configuração do Cursor ou do GitHub) e se a notificação traz o link do PR.
 

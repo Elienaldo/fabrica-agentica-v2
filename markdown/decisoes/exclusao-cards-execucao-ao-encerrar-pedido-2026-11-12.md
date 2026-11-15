@@ -2,7 +2,7 @@
 
 **Data:** 2026-11-12 (America/Bahia, UTC-3).
 **Estado:** regra registrada e aplicada nos artefatos do Supervisor.
-**Escopo desta entrega:** regra nova (seção 32) do Supervisor, gravada na biblioteca carregável (box `supervisor-regras/SKILL.md` e cópia do projeto `skills\supervisor-regras.md`), no modelo `markdown\modelos\supervisor.md` e na descrição do bot Supervisor; mais este registro de decisão. Após a divisão em camadas (12/11/2026), a seção 32 está na skill `supervisor-destruicao` (espelho `skills\supervisor-destruicao.md`). Nenhum card foi excluído por esta entrega.
+**Escopo desta entrega:** regra nova (seção 32) do Supervisor, gravada na biblioteca carregável (box `arquiteto-regras/SKILL.md` e cópia do projeto `skills\arquiteto-regras.md`), no modelo `markdown\modelos\supervisor.md` e na descrição do bot Supervisor; mais este registro de decisão. Após a divisão em camadas (12/11/2026), a seção 32 está na skill `arquiteto-destruicao` (espelho `skills\arquiteto-destruicao.md`). Nenhum card foi excluído por esta entrega.
 
 ## Decisão
 
@@ -17,7 +17,7 @@ Assim que o Elienaldo autorizar o encerramento de um pedido/solicitação, o Sup
 
 ## Artefatos atualizados neste trabalho
 
-- `skills\supervisor-regras.md` (cópia do projeto da biblioteca) — seção 32.
-- biblioteca carregável do box `supervisor-regras/SKILL.md` — seção 32.
+- `skills\arquiteto-regras.md` (cópia do projeto da biblioteca) — seção 32.
+- biblioteca carregável do box `arquiteto-regras/SKILL.md` — seção 32.
 - `markdown\modelos\supervisor.md` — seção 32.
 - descrição do bot Supervisor (perfil) — seção 32.

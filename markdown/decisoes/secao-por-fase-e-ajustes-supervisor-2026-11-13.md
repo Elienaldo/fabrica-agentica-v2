@@ -21,33 +21,33 @@ O Supervisor fecha a conversa (ou grupo) de cada fase e abre uma nova para a pr�
 
 1. **Skill e descrição:** a documentação falava em skill como se todo bot tivesse uma. Corrigido: só o Supervisor tem skills; os demais bots usam a descrição (e a ficha em `markdown\modelos\`) como biblioteca.
 2. **Modelo do Cursor:** o README tratava o modelo do Cursor como genérico. Corrigido para grok-4.7 (reasoning_effort high, fast false, context 500k).
-3. **Arquivo antigo de regras do Supervisor:** referências do tipo "seção N de supervisor-regras" apontavam para o arquivo único antigo. Corrigido para a skill de camada 2 certa, em 14 documentos e fichas e nas fontes reais (descrições do Supervisor, Dr. Eggbot e Dev Expresso; skill `supervisor-destruicao` no box e no PC). Registros antigos de auditoria ficaram como histórico.
+3. **Arquivo antigo de regras do Supervisor:** referências do tipo "seção N de arquiteto-regras" apontavam para o arquivo único antigo. Corrigido para a skill de camada 2 certa, em 14 documentos e fichas e nas fontes reais (descrições do Supervisor, Dr. Eggbot e Dev Expresso; skill `arquiteto-destruicao` no box e no PC). Registros antigos de auditoria ficaram como histórico.
 
 Backups: `backups\readme-novidades-20261113-002701`, `backups\conflitos-doc-20261113-002759` e `backups\conflitos-lib-20261113-003015`.
 
 ## Decisão 3 — Divisão em etapas da biblioteca do Supervisor (12/11/2026)
 
 As regras do Supervisor, que estavam num arquivo único de cerca de 36 KB, foram divididas em 3 camadas:
-- **Camada 1:** `supervisor-regras`, enxuta (cerca de 3 KB), com o núcleo sempre válido, o gatilho de carregamento por fase e o índice.
-- **Camada 2:** 8 skills por função: `supervisor-fases`, `supervisor-research`, `supervisor-review-merge`, `supervisor-criacao-secao`, `supervisor-destruicao`, `supervisor-operacao-cursor`, `supervisor-comunicacao-humana` e `supervisor-logs`.
+- **Camada 1:** `arquiteto-regras`, enxuta (cerca de 3 KB), com o núcleo sempre válido, o gatilho de carregamento por fase e o índice.
+- **Camada 2:** 8 skills por função: `arquiteto-fases`, `arquiteto-research`, `arquiteto-review-merge`, `supervisor-criacao-secao`, `arquiteto-destruicao`, `arquiteto-operacao-cursor`, `arquiteto-comunicacao-humana` e `arquiteto-logs`.
 - **Camada 3:** os documentos de fase em `markdown\fases\`.
 
 **Justificativa:** minimizar os trade-offs entre as fases. Cada fase carrega só as regras de que precisa, em vez de carregar o arquivo inteiro.
 
 O arquivo antigo foi preservado como `skills\supervisor-regras.md.pre-stageD`.
 
-**Nota — onde vive a amarração entre as camadas:** a amarração das três camadas não está solta: ela vive na camada 1. A skill `supervisor-regras` (enxuta e sempre carregada) contém o gatilho de carregamento por fase. A mensagem de handoff traz o nome da fase, e a camada 1 indica qual skill da camada 2 e qual `fase-*.md` da camada 3 carregar antes de agir (por exemplo, research carrega `supervisor-research`, `supervisor-fases` e `markdown\fases\fase-research.md`). Funções sem fase (criar seção, destruir, operar o Cursor, contatar o humano, registrar tokens) carregam o bloco pela ação. A camada 1 também traz o índice que resolve cada seção para a sua skill da camada 2.
+**Nota — onde vive a amarração entre as camadas:** a amarração das três camadas não está solta: ela vive na camada 1. A skill `arquiteto-regras` (enxuta e sempre carregada) contém o gatilho de carregamento por fase. A mensagem de handoff traz o nome da fase, e a camada 1 indica qual skill da camada 2 e qual `fase-*.md` da camada 3 carregar antes de agir (por exemplo, research carrega `arquiteto-research`, `arquiteto-fases` e `markdown\fases\fase-research.md`). Funções sem fase (criar seção, destruir, operar o Cursor, contatar o humano, registrar tokens) carregam o bloco pela ação. A camada 1 também traz o índice que resolve cada seção para a sua skill da camada 2.
 
 ## Atualizações
 
 - 2026-11-13 00:38 Bahia: registro criado.
-- 2026-11-13 12:35 Bahia: o Elienaldo esclareceu que "seção por fase" é a conversa ou grupo por fase, não a seção da sidebar, que continua uma por feature. Esclarecimento aplicado no item 1 da regra 28 em `supervisor-fases` (box e `skills\supervisor-fases.md`) e na ficha `markdown\modelos\supervisor.md`.
-- 2026-11-13 12:38 Bahia: corrigida a contradição da seção 21 de `supervisor-fases`, que dizia "uma única sessão do Cursor por feature". Agora diz uma sessão por fase, sem sessões extras para os passos preparatórios, alinhada às seções 15 e 28. A ficha `supervisor.md` já estava coerente e não mudou.
-- 2026-11-13 13:28 Bahia: adicionada na decisão 3 a nota de que a amarração entre as três camadas vive na camada 1 (gatilho de carregamento por fase em `supervisor-regras`). A biblioteca já trazia esse gatilho e não precisou mudar.
+- 2026-11-13 12:35 Bahia: o Elienaldo esclareceu que "seção por fase" é a conversa ou grupo por fase, não a seção da sidebar, que continua uma por feature. Esclarecimento aplicado no item 1 da regra 28 em `arquiteto-fases` (box e `skills\arquiteto-fases.md`) e na ficha `markdown\modelos\supervisor.md`.
+- 2026-11-13 12:38 Bahia: corrigida a contradição da seção 21 de `arquiteto-fases`, que dizia "uma única sessão do Cursor por feature". Agora diz uma sessão por fase, sem sessões extras para os passos preparatórios, alinhada às seções 15 e 28. A ficha `supervisor.md` já estava coerente e não mudou.
+- 2026-11-13 13:28 Bahia: adicionada na decisão 3 a nota de que a amarração entre as três camadas vive na camada 1 (gatilho de carregamento por fase em `arquiteto-regras`). A biblioteca já trazia esse gatilho e não precisou mudar.
 - 2026-11-13 14:16 Bahia: diagramas Excalidraw atualizados com o grupo novo por feature, o research sem handoff de entrada e o handoff enxuto nas demais fases (ver "Atualização 13/11 — diagramas").
 - 2026-11-13 14:23 Bahia: nomes dos grupos definidos: grupo inicial com o prefixo do caminho e `<fase>-<nome-da-feature>` para os de fase (ver "Atualização 13/11 — nome dos grupos").
 - 2026-11-13 14:26 Bahia: decisão provisória de nomear o grupo inicial pelo prefixo do caminho (padrão ou expresso); substituída às 14:28.
-- 2026-11-13 14:28 Bahia: grupo inicial único por feature, em qualquer caminho, inclusive no expresso: membros são o Supervisor e o humano que pediu a feature, e o nome é `canal-<nome-da-feature>`. O Dev Expresso não abre grupo inicial próprio. Diagrama principal ajustado: "SUPERVISOR (também no caminho expresso)" e "GRUPO INICIAL DA FEATURE (Supervisor + humano solicitante)". Os grupos de fase continuam `<fase>-<nome-da-feature>`. Skill `supervisor-fases`, descrições do Dr. Eggbot e do Dev Expresso, espelho `skills\supervisor-fases.md` e fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md` receberam o nome dos grupos de fase (backup `backups\lib-nomes-grupo-20261113-142836`).
+- 2026-11-13 14:28 Bahia: grupo inicial único por feature, em qualquer caminho, inclusive no expresso: membros são o Supervisor e o humano que pediu a feature, e o nome é `canal-<nome-da-feature>`. O Dev Expresso não abre grupo inicial próprio. Diagrama principal ajustado: "SUPERVISOR (também no caminho expresso)" e "GRUPO INICIAL DA FEATURE (Supervisor + humano solicitante)". Os grupos de fase continuam `<fase>-<nome-da-feature>`. Skill `arquiteto-fases`, descrições do Dr. Eggbot e do Dev Expresso, espelho `skills\arquiteto-fases.md` e fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md` receberam o nome dos grupos de fase (backup `backups\lib-nomes-grupo-20261113-142836`).
 
 ## Atualização 13/11 — diagramas
 
@@ -75,26 +75,26 @@ Decisão do Elienaldo (13/11/2026, 14:21 Bahia, corrigindo a das 14:19, que prev
 
 Aplicado em: `markdown\comunicacao.md` (seção 5), `markdown\regras\convencoes-fabrica.md` (nova seção "Nome dos grupos"), `markdown\fases\fase-research.md`, `fase-plan.md`, `fase-implement.md` e `fase-review.md` (nota no fim), e nos 5 diagramas (`fábrica-agentica`, `fase-research`, `fase-plan`, `fase-implement` e `fase-review`). Backup: `backups\nomenclatura-grupo-20261113-142105`.
 
-Regra de ouro: o nome dos grupos de fase foi aplicado às 14:27–14:29 Bahia na skill `supervisor-fases` (seção 28, item 1), nas descrições do Dr. Eggbot e do Dev Expresso, no espelho `skills\supervisor-fases.md` e nas fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md`. Pendente: o grupo inicial (`canal-<nome-da-feature>`) ainda não existe como regra em nenhuma fonte carregável e entra quando a regra do grupo inicial por feature for levada à biblioteca.
+Regra de ouro: o nome dos grupos de fase foi aplicado às 14:27–14:29 Bahia na skill `arquiteto-fases` (seção 28, item 1), nas descrições do Dr. Eggbot e do Dev Expresso, no espelho `skills\arquiteto-fases.md` e nas fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md`. Pendente: o grupo inicial (`canal-<nome-da-feature>`) ainda não existe como regra em nenhuma fonte carregável e entra quando a regra do grupo inicial por feature for levada à biblioteca.
 
 ## Atualização 13/11 — grupo inicial nas bibliotecas carregáveis (16:28 Bahia)
 
 A regra do grupo inicial `canal-<nome-da-feature>` (decisão das 14:28 Bahia) entrou nas fontes carregáveis. Os docs-fonte (`markdown\comunicacao.md` §5, `markdown\regras\convencoes-fabrica.md` e as notas de grupo de fase em `markdown\fases\fase-*.md`) não foram alterados.
 
-Já estava: o nome dos grupos de fase `<fase>-<nome-da-feature>` na skill `supervisor-fases` §28 item 1 (box e espelho do PC), nas descrições do Dr. Eggbot e do Dev Expresso e nas fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md`.
+Já estava: o nome dos grupos de fase `<fase>-<nome-da-feature>` na skill `arquiteto-fases` §28 item 1 (box e espelho do PC), nas descrições do Dr. Eggbot e do Dev Expresso e nas fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md`.
 
 Alterado neste turno (regra de ouro; backup no PC `backups\comunicacao-grupos-20261113-162714` e no box `/workspace/backups/comunicacao-grupos-20261113-162714`):
 
-- skill `supervisor-regras` (camada 1, box LF / espelho PC CRLF): o essencial cita o grupo inicial e o de fase.
+- skill `arquiteto-regras` (camada 1, box LF / espelho PC CRLF): o essencial cita o grupo inicial e o de fase.
   - antes `E0570B4DB34F75E4E9B5AD3D7558147933D0CC35C68713F1E2AE11F228834017` → depois `727D7D020B9AE18ED2BA3258DE9D0C29D7B4E41DB29B5501B832A5C9B14865DE` (box)
   - antes `EEE6C49F6F109E5170BBD64C8FC4F81D34BDA86EB17494C57D38989BC5C3792F` → depois `DDCED7BA1AB2474A1F6ADB3F785CD285CD751B13D9ED937D222E3EC0EE29930A` (PC)
 - skill `supervisor-criacao-secao` §18: criação do grupo `canal-<nome-da-feature>` antes da branch, dos bots e de qualquer fase, inclusive no expresso.
   - antes `D859C114D6E65D76A5458AD46B1D34B1298FB16E656FEBCCCE77CABCC3FDE56D` → depois `99451F7A73C540EFF385AD55EBEAA5BF87DD49EEA24B01BC287F9930E0379B6A` (box)
   - antes `0DE696106C01B904AA9BA55703054A23EC0131E041709BB6F0B8B5A3C7DFCAD3` → depois `CF2DD9CD9F4836CF88AC69588A54B82E787BA5118F0E5B58F2D3BA44BA184A06` (PC)
-- skill `supervisor-comunicacao-humana` §4: a conversa da feature com o humano ocorre nesse grupo.
+- skill `arquiteto-comunicacao-humana` §4: a conversa da feature com o humano ocorre nesse grupo.
   - antes `34B5B367B32A0CD6D17972996489F1A0FBFF98A4DFC24525A833457ABF12A4C6` → depois `5EE1E8DE03B870397FD824A819F90690266F1E810835A95774FDD4795C40D3E8` (box)
   - antes `029A7C8479BB0BD86CD88CDD7BFF1AAD2E924DE8CD3FAA2CB9FF54A50A74053D` → depois `00F4367B53A6B03632A1B90646B1CBEDBE678AB346F151992C2FFCC2B08E97B8` (PC)
-- skill `supervisor-fases` §28 item 1: o grupo inicial não se confunde com o grupo de fase.
+- skill `arquiteto-fases` §28 item 1: o grupo inicial não se confunde com o grupo de fase.
   - antes `E5B95F0919E5B28F7A166B168E0155A5F60FBF9693DC13339A18BD022C400B2E` → depois `FAE9D4FF3BA793DCEB9B968FC570BD6E045C232A925362B95EDC7E3D425E69A4` (box)
   - antes `918061557CC53F5A2720AB57801BB352A99D68B51218B5BBD7F2434F09191BFA` → depois `D1C24F742C7A77D6156FB837C90A677A35FA6A5111D59D319A18F6C49B88A31B` (PC)
 - fichas `supervisor.md`, `dr-eggbot.md` e `dev-expresso.md`: o mesmo acréscimo do grupo inicial no item 1 da seção 28.
@@ -123,7 +123,7 @@ Aplicado (regra de ouro; backup no PC `backups\principal-acordar-votantes-202611
   - antes `D8B1F0D6978464A464D524E2C3438D13E01C266BB4A4024635DAF1530F2349F6` → depois `FB0D9DA67FF4522476746535BC71CE2EF7F46A5FA6AA5CB37E5E693886B64E9B`
 - `markdown\fases\fase-research.md`: o fluxo de votação passa a exigir o aviso direto do Principal, sem substituir o debate no grupo.
   - antes `DF5EDDE14D611E5ECEAB30E9B0D99ACD85912EAF6D3BD009B7F245CA4D99798B` → depois `54EA49ABF153D728AED6918345109ED2E93D9C35FA4D51F88FDB514B1732056A`
-- skill `supervisor-research` (box LF / espelho PC CRLF): o Principal, ao aguardar voto, faz o aviso direto; isso não transfere a cobrança ao Supervisor nem substitui o debate no grupo.
+- skill `arquiteto-research` (box LF / espelho PC CRLF): o Principal, ao aguardar voto, faz o aviso direto; isso não transfere a cobrança ao Supervisor nem substitui o debate no grupo.
   - antes `6792BA578FA249866E6E2E9AB1067D4A3009A7D3EFC7CD22F72166226A1B4352` → depois `E5856356FBEA451A783D90B4AF477DE5D49B2233D8876810F75336F062EDDF1A` (box)
   - antes `F87C9FD0C364F8703CAD272D7F4B3DBE73467281E302AB117932B30D34DFB14C` → depois `62B8CAFC092E1066C7D24D0066B8549722CC6E0FE2D892B96775EA1A010E6E1F` (PC)
 
@@ -137,7 +137,7 @@ Decisão do Elienaldo (13/11/2026, 16:55 Bahia): não existe grupo de direção 
 
 Consequência alinhada, sem regra nova além disso: o grupo de review deixou de ser criado com a sessão. Como os demais grupos de fase, ele abre quando a fase review começa. O grupo de research continua nascendo junto com os agentes de research, quando o Principal classifica a feature como SIM. O Supervisor continua fora do debate dos quatro no grupo de research; a entrega de insumos e o resultado do research passam pelo Principal.
 
-O grupo já existente `feat-ambiente-dev-testes-locais-20261113.direção` (id `8c993137-0392-4c0e-a418-e7032a645c89`) não foi apagado: a exclusão depende de autorização humana explícita. O casamento legado `<feature>-AAAAMMDD.direção` no script `destruir-secao-api.py`, na skill `supervisor-destruicao` e no `contratos/contrato-destruicao-api-interna.md` permanece, só para limpar grupos antigos.
+O grupo já existente `feat-ambiente-dev-testes-locais-20261113.direção` (id `8c993137-0392-4c0e-a418-e7032a645c89`) não foi apagado: a exclusão depende de autorização humana explícita. O casamento legado `<feature>-AAAAMMDD.direção` no script `destruir-secao-api.py`, na skill `arquiteto-destruicao` e no `contratos/contrato-destruicao-api-interna.md` permanece, só para limpar grupos antigos.
 
 Aplicado (regra de ouro; backup no PC `backups\remove-direcao-20261113-165953` e no box `/workspace/backups/remove-direcao-20261113-165953`):
 
@@ -145,7 +145,7 @@ Aplicado (regra de ouro; backup no PC `backups\remove-direcao-20261113-165953` e
   - antes `4F99293CCAD9C93E5075C39FD584963560D0F97DD823299A984D87E51B813993` → depois `6606F630F8980CC07EE3DC08F32F0247E2482A5BA881917F73FF346FFB1A269A`
 - `markdown\regras\convencoes-fabrica.md`: a seção "Nome dos grupos" registra que não existe grupo de direção.
   - antes `1609E7B41982937EEAFDF7CD8844F6FCB6F052742B1698CC59CE55EC33BBC6CC` → depois `AFED1A883E886F0ECAD7376F5AD17CE7447184A2B284CF4FF33D2D4358160B62`
-- skill `supervisor-research` (box LF / espelho PC CRLF): a entrega de insumos ao Principal deixou de citar o canal de direção.
+- skill `arquiteto-research` (box LF / espelho PC CRLF): a entrega de insumos ao Principal deixou de citar o canal de direção.
   - antes `E5856356FBEA451A783D90B4AF477DE5D49B2233D8876810F75336F062EDDF1A` → depois `47EDFD48AD4BA31CFF7C2C0F7F3CD1FEADA9F254C51A14B34E1588D777E44A69` (box)
   - antes `62B8CAFC092E1066C7D24D0066B8549722CC6E0FE2D892B96775EA1A010E6E1F` → depois `70B676DD64C73A168EBA8750FA31E713B64DFC4085A3A773E3A5047BC8EEA461` (PC)
 - `README.md`: o resumo de `comunicacao.md` passou a falar em canal da feature e grupos por fase.

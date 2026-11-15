@@ -15,8 +15,8 @@ Fábrica de desenvolvimento de software feita de bots: recebe uma demanda e entr
 - **Destruição por API interna validada, inclusive grupos.** Stages A e B em 12/11/2026; `room_delete` em 13/11/2026 19:39 (evidência em `C:\Users\Elienaldo\GrokBot-Scripts\diagnostico-apiinterna-stage6-1113\`). Ver seção 7.
 - **Consumo de tokens 8/11 × 13/11.** Dois painéis novos em `docs/consumo/`. Resumo na seção 13.
 
-1. **Supervisor em 3 camadas.** A biblioteca de regras não é mais um arquivo único. Camada 1: skill `supervisor-regras` (núcleo sempre presente, com o essencial, o gatilho de carregamento por fase e o índice dos blocos). Camada 2: 8 skills por função, carregadas só quando o Supervisor assume aquela função — `supervisor-fases`, `supervisor-research`, `supervisor-review-merge`, `supervisor-criacao-secao`, `supervisor-destruicao`, `supervisor-operacao-cursor`, `supervisor-comunicacao-humana` e `supervisor-logs`. Camada 3: documentos de fase em `markdown/fases`, anexados sob demanda. Nenhum gate, autorização ou validação humana foi removido. A divisão trouxe uma redução grande do prefixo fixo (estimativa do Elienaldo: ~60%, ~7.700 tokens por turno).
-2. **Regra 28 adaptada individualmente.** Cada bot carrega a regra 28 (conversa nova por fase e handoff enxuto) na própria ficha, sem referências a seções que só existem no Supervisor. Descrições vivas: Dev Expresso, Grok Bot, Âncora, Dr. Eggbot e Mestre de obras. Fichas: Principal, Orquestrador, Dev Expresso, Dr. Eggbot, Âncora, Advogado do diabo, Cirurgião, Curador, Design de front-end e Product Engineer. O Supervisor mantém a versão dele em `supervisor-fases` (camada 2), porque as seções existem nele. Radar fica fora da regra 28.
+1. **Regras em 3 camadas (hoje no Arquiteto).** A biblioteca de regras não é mais um arquivo único. Camada 1: skill `arquiteto-regras` (núcleo sempre presente, com o essencial, o gatilho de carregamento por fase e o índice dos blocos). Camada 2: 7 skills por função, carregadas só quando o Arquiteto assume aquela função — `arquiteto-fases`, `arquiteto-research`, `arquiteto-review-merge`, `arquiteto-destruicao`, `arquiteto-operacao-cursor`, `arquiteto-comunicacao-humana` e `arquiteto-logs`. Camada 3: documentos de fase em `markdown/fases`, anexados sob demanda. Nenhum gate, autorização ou validação humana foi removido. A divisão trouxe uma redução grande do prefixo fixo (estimativa do Elienaldo: ~60%, ~7.700 tokens por turno).
+2. **Regra 28 adaptada individualmente.** Cada bot carrega a regra 28 (conversa nova por fase e handoff enxuto) na própria ficha, sem referências a seções que só existem no Arquiteto. Descrições vivas: Dev Expresso, Grok Bot, Âncora, Dr. Eggbot e Mestre de obras. Fichas: Principal, Orquestrador, Dev Expresso, Dr. Eggbot, Âncora, Advogado do diabo, Cirurgião, Curador, Design de front-end e Product Engineer. O Arquiteto mantém a versão dele em `arquiteto-fases` (camada 2), porque as seções existem nele. Radar fica fora da regra 28.
 3. **Sem modelo base.** Não existe mais modelo base comum. Cada bot carrega a própria regra 28 e o log de tokens na sua ficha em `markdown/modelos/`. O arquivo `_modelo-base-bot.md` foi apagado em 13/11/2026 (backup em `backups/modelo-base-remocao-20261113-001541/`, SHA `7AF28F9E`).
 4. **Quem instala as skills é o modelo do Cursor** (corrigido em `markdown/modelos/fábrica-agêntica.md` e em `contratos/execucao-verificacao/fluxo-contrato-verificacao.md`).
 5. **Dev Expresso avaliado para camadas (12/11/2026):** prefixo fixo ~1.692 tokens (descrição viva, 6.766 caracteres; ficha 6.593), sem handoff entre fases e com comunicação só com o Supervisor no caminho rápido. A divisão em camadas não foi aplicada.
@@ -34,7 +34,7 @@ Fábrica de desenvolvimento de software feita de bots: recebe uma demanda e entr
 3. [Função de cada parte](#3-função-de-cada-parte)
 4. [Fases do fluxo](#4-fases-do-fluxo)
 5. [Comunicação bidirecional com o Cursor](#5-comunicação-bidirecional-com-o-cursor)
-6. [Pedido órfão](#6-pedido-órfão-seção-9-de-supervisor-operacao-cursor)
+6. [Pedido órfão](#6-pedido-órfão-seção-9-de-arquiteto-operacao-cursor)
 7. [Seções por feature](#7-seções-por-feature)
 8. [Padrões adotados](#8-padrões-adotados)
 9. [Como utilizar](#9-como-utilizar)
@@ -48,7 +48,7 @@ Fábrica de desenvolvimento de software feita de bots: recebe uma demanda e entr
 
 ## 1. O que é
 
-Um conjunto de bots do Grok Bot que trabalham em equipe com agentes de nuvem do Cursor. Os bots coordenam, decidem e controlam o fluxo. Quem escreve o código é o agente do Cursor, que roda numa VM própria, em branch própria. Cada feature roda numa **seção** da barra lateral, com a sua squad. A **criação** e a **destruição** da seção são iniciadas pelo Supervisor, via script local no PC, nas condições da seção 23 de `skills/supervisor-criacao-secao.md` e da seção 24 de `skills/supervisor-destruicao.md`. O Dr. Eggbot cria bots e equipes; **não participa da destruição**.
+Um conjunto de bots do Grok Bot que trabalham em equipe com agentes de nuvem do Cursor. Os bots coordenam, decidem e controlam o fluxo. Quem escreve o código é o agente do Cursor, que roda numa VM própria, em branch própria. Cada feature roda numa **seção** da barra lateral, com a sua squad. A **criação** e a **destruição** da seção são iniciadas pelo Supervisor, via script local no PC, nas condições da seção 23 de `skills/supervisor-criacao-secao.md` e da seção 24 de `skills/arquiteto-destruicao.md`. O Dr. Eggbot cria bots e equipes; **não participa da destruição**.
 
 ## 2. Objetivo
 
@@ -63,7 +63,7 @@ Um conjunto de bots do Grok Bot que trabalham em equipe com agentes de nuvem do 
 
 | Parte | O que é | Função |
 | --- | --- | --- |
-| **Supervisor** | Bot permanente | Ponte única entre a fábrica e o Cursor, e único canal com o humano. Resolve o workspace, lança os agentes, mantém o livro-razão, casa o retorno com o pedido, avisa o humano. Inicia a criação e a destruição local da seção, quando autorizadas e, no caso da destruição, com capacidades validadas. Não classifica, não desenha, não implementa, não revisa. Regras em 3 camadas: skill `supervisor-regras` (camada 1, núcleo + gatilho por fase + índice) e 8 skills de camada 2, carregadas só quando ele assume aquela função. |
+| **Supervisor** | Bot permanente | Ponte única entre a fábrica e o Cursor, e único canal com o humano. Resolve o workspace, lança os agentes, mantém o livro-razão, casa o retorno com o pedido, avisa o humano. Inicia a criação e a destruição local da seção, quando autorizadas e, no caso da destruição, com capacidades validadas. Não classifica, não desenha, não implementa, não revisa. Regras em 3 camadas: skill `arquiteto-regras` (camada 1, núcleo + gatilho por fase + índice) e 8 skills de camada 2, carregadas só quando ele assume aquela função. |
 | **Dev Expresso** | Bot permanente | Caminho à parte para desenvolvimentos pequenos (fix, label, cor de botão), fora do fluxo padrão. Recebe do humano, repassa ao Supervisor, devolve ao humano o retorno completo (resumo, prints, arquivos, testes, links). Aplica o freio de escopo: pedido grande vai ao fluxo padrão. Não tem skill própria. |
 | **Cursor** | Agentes de nuvem, fora do Grok Bot | Executam o trabalho de código numa VM, em branch nova, a pedido do Supervisor. Não entram em grupo de chat. |
 | **Livro-razão** | Arquivo de estado do Supervisor | Registra cada pedido (`request_id`), o ID do agente (`bc-…`), grupo, feature, fase e a entrega (commit, PR). É a base do casamento do retorno. |
@@ -107,16 +107,16 @@ flowchart LR
 | --- | --- | --- | --- |
 | 1. Entrada | Supervisor, Dr. Eggbot | O Supervisor recebe a demanda, pergunta o projeto só se faltar, cria a seção da feature pelo script local (seção 7) e só então pede os bots ao Dr. Eggbot. Abre a branch e pede o Principal Product Engineer. | feature e seção |
 | 2. Classificação | Principal Product Engineer | Na visão atual (`fábrica-agêntica.md`): 5 perguntas (arquitetura; mais de um serviço ou componente compartilhado; requisito ambíguo; difícil de desfazer; autenticação, dados pessoais ou segredos). Nenhum SIM é simples e vai direto ao plan; um ou dois SIM é média; três ou mais SIM, ou produto novo, é alta. SIM nas perguntas 4 ou 5 dá no mínimo média. O humano pode fixar o nível com uma tag. Ver pendência sobre textos que ainda citam 3 perguntas. | rota |
-| 3. Research (a fase de busca) | Principal, Product Engineer, design de front-end, advogado do diabo | Decisão em consenso, no máximo 2 rodadas; sem consenso, o humano decide. Entrevista obrigatória, quando houver, interrompe o avanço. O OK humano do protótipo é obrigatório antes do plan (seção 22 de `supervisor-fases`). | PRD (média) ou design doc (alta) |
+| 3. Research (a fase de busca) | Principal, Product Engineer, design de front-end, advogado do diabo | Decisão em consenso, no máximo 2 rodadas; sem consenso, o humano decide. Entrevista obrigatória, quando houver, interrompe o avanço. O OK humano do protótipo é obrigatório antes do plan (seção 22 de `arquiteto-fases`). | PRD (média) ou design doc (alta) |
 | 4. Plan | Orquestrador, Cursor com TLC Spec Lean | Sessão nova de contexto limpo; sempre pede plano e checks. Só começa depois do OK do protótipo, quando houve research com protótipo. | `plan.md`, `checks.md`, `verification.md`, `STATE.md`, `LESSONS.md` |
 | 5. Implement | Orquestrador, Cursor com TLC Spec Lean | Build, testes e verificação dentro da skill (Verifier interno). Teste vermelho é parada, e a asserção nunca é enfraquecida. No máximo 3 rodadas de correção; depois, escala ao humano. | PR |
 | 6. Review | Orquestrador, Cursor com the-judge, Curador, Cirurgião | A the-judge classifica em blocker, should fix e nit (máx. 3 rodadas por execução). O Cirurgião corrige should fix e nit (máx. 3 rodadas). Blocker e should fix complexo vão ao humano. | findings, HTML |
 | 7. Merge | Orquestrador | Merge no GitHub quando a última rodada da the-judge vem limpa e sem blocker pendente (nit pode ficar). | PR mergeado |
-| 8. Aviso | Supervisor | Avisa o humano. A destruição só pode ser iniciada pelo Supervisor via script local, com autorização explícita de alvo e alcance e com capacidades validadas, conforme a seção 24 de `supervisor-destruicao`. O merge, por si só, não autoriza destruir. A rota de API interna está validada (seção 7). | aviso |
+| 8. Aviso | Supervisor | Avisa o humano. A destruição só pode ser iniciada pelo Supervisor via script local, com autorização explícita de alvo e alcance e com capacidades validadas, conforme a seção 24 de `arquiteto-destruicao`. O merge, por si só, não autoriza destruir. A rota de API interna está validada (seção 7). | aviso |
 
 **Sessão nova em toda fase:** Toda fase nova (research, plan, implement e review) começa com o Supervisor solicitando ao Cursor que abra uma nova sessão, com contexto limpo, sem exceção. O handoff entre fases passa sempre pelo Supervisor, que dispara a sessão nova.
 
-**Regra 28 — conversa nova por fase e handoff enxuto (decisão de 11/11/2026).** Cada fase começa em conversa nova, sem arrastar o histórico da anterior. O handoff leva só a decisão e o link do artefato. Cada bot carrega a sua versão da regra na própria ficha (o Supervisor, em `supervisor-fases`). O Radar fica fora. Motivo: a auditoria de consumo mostrou que o cache relido é a maior parte do gasto (seção 13).
+**Regra 28 — conversa nova por fase e handoff enxuto (decisão de 11/11/2026).** Cada fase começa em conversa nova, sem arrastar o histórico da anterior. O handoff leva só a decisão e o link do artefato. Cada bot carrega a sua versão da regra na própria ficha (o Supervisor, em `arquiteto-fases`). O Radar fica fora. Motivo: a auditoria de consumo mostrou que o cache relido é a maior parte do gasto (seção 13).
 
 ### Comunicação da feature (decisão de 13/11/2026)
 
@@ -164,7 +164,7 @@ A branch `fix/20261103-versao-adega-v1-1` está no remoto, com o commit `44836f8
 
 Detalhes completos: `markdown/automacoes/comunicacao-bidirecional-cursor.md`.
 
-## 6. Pedido órfão (seção 9 de `supervisor-operacao-cursor`)
+## 6. Pedido órfão (seção 9 de `arquiteto-operacao-cursor`)
 
 Se uma notificação de conclusão chegar e o ID do agente não casar com nenhum registro do livro-razão (ID não encontrado, ou gravação que falhou no lançamento):
 
@@ -184,7 +184,7 @@ A rotina receptora **Fábrica — bloqueio criação** só registra o resultado 
 
 ### Destruição
 
-Só o Supervisor inicia a destruição, com autorização humana explícita de alvo e alcance. O Dr. Eggbot **não recebe esse pedido**. Fim de feature, merge ou aviso de conclusão, por si só, não autorizam destruir. Regras: seção 24 de `skills/supervisor-destruicao.md`. Contrato atual: `contratos/contrato-destruicao-api-interna.md`. Desenho: `excalidraw/destruicao-api-interna.excalidraw`.
+Só o Supervisor inicia a destruição, com autorização humana explícita de alvo e alcance. O Dr. Eggbot **não recebe esse pedido**. Fim de feature, merge ou aviso de conclusão, por si só, não autorizam destruir. Regras: seção 24 de `skills/arquiteto-destruicao.md`. Contrato atual: `contratos/contrato-destruicao-api-interna.md`. Desenho: `excalidraw/destruicao-api-interna.excalidraw`.
 
 **Rota única: API interna** (`C:\Users\Elienaldo\GrokBot-Scripts\destruir-secao-api.py --api-real` + `grokbot_api_client.py`). A rota de tela (UIA, `destruir-secao-feature.py` e `destruir-secao-feature-uia.ps1`) foi aposentada em 12/11/2026 por decisão do Elienaldo.
 
@@ -216,8 +216,8 @@ A rotina receptora **Fábrica — bloqueio destruição** só registra bloqueio 
 - **Criação de bots sempre pelo modelo:** cada bot nasce da ficha em `markdown/modelos/`. Sem ficha, o Dr. Eggbot não cria. Quem pede a criação cola o texto do modelo na solicitação; o Dr. Eggbot não acessa diretamente a pasta local do projeto.
 - **Backup antes de alterar:** todo documento alterado ganha cópia de backup; só valem os arquivos sem sufixo `-anterior`.
 - **Limites de rodadas, contados separadamente:** research 2, implement 3, the-judge 3 por execução, Cirurgião 3.
-- **Validação humana do protótipo antes do plan** (seção 22 de `supervisor-fases`): consenso da equipe não substitui o OK explícito do Elienaldo. Sem esse OK, o handoff para o plan fica bloqueado.
-- **Regra de ouro de atualização:** toda atualização de regra de um bot exige, no mesmo trabalho, atualizar a biblioteca carregável e a documentação do projeto, com backup e hash antes/depois. A biblioteca do Supervisor é o conjunto das skills (`supervisor-regras` na camada 1 e as 8 de camada 2; no PC, o espelho em `skills/*.md`). Nos demais bots, a biblioteca é a descrição do bot (bots vivos) e a ficha em `markdown/modelos/` (documentação e fonte dos criados por sessão). Documento e biblioteca não podem ficar em versões diferentes.
+- **Validação humana do protótipo antes do plan** (seção 22 de `arquiteto-fases`): consenso da equipe não substitui o OK explícito do Elienaldo. Sem esse OK, o handoff para o plan fica bloqueado.
+- **Regra de ouro de atualização:** toda atualização de regra de um bot exige, no mesmo trabalho, atualizar a biblioteca carregável e a documentação do projeto, com backup e hash antes/depois. A biblioteca do Arquiteto é o conjunto das skills (`arquiteto-regras` na camada 1 e as 7 de camada 2; no PC, o espelho em `skills/arquiteto-*.md`). Nos demais bots, a biblioteca é a descrição do bot (bots vivos) e a ficha em `markdown/modelos/` (documentação e fonte dos criados por sessão). Documento e biblioteca não podem ficar em versões diferentes.
 
 ## 9. Como utilizar
 
@@ -242,9 +242,9 @@ A rotina receptora **Fábrica — bloqueio destruição** só registra bloqueio 
 ```
 Fabrica-Agentica/
 ├── README.md
-├── skills/                           # espelho no PC das skills do Supervisor (fonte: box)
-│   ├── supervisor-regras.md          # camada 1: núcleo, gatilho por fase e índice
-│   └── supervisor-*.md               # camada 2: fases, research, review-merge, criacao-secao,
+├── skills/                           # skills do Arquiteto (espelho do box) e do Bootstrapper
+│   ├── arquiteto-regras.md          # camada 1: núcleo, gatilho por fase e índice
+│   └── arquiteto-*.md               # camada 2: fases, research, review-merge, criacao-secao,
 │                                     #   destruicao, operacao-cursor, comunicacao-humana, logs
 ├── contratos/
 │   ├── contrato-webhook-criacao.md
@@ -284,7 +284,7 @@ Arquivos com sufixo `-anterior`, `.pre-*` ou `.bak*` são backups e não valem. 
 | `markdown/modelos/dashboard-benchmarks.html` | Painel de benchmarks de modelos. |
 | `markdown/comunicacao.md` | Grupos de chat (permanente, canal da feature, grupos por fase), pares de comunicação, roteamento, nome dos canais e histórico. |
 | `markdown/fases/fase-*.md` | Registro em texto dos diagramas de cada fase (research, plan, implement, review). As versões `fase-research-v1.md` e `fase-plan-v1.md` são histórico. |
-| `markdown/regras/convencoes-fabrica.md` | Padrão de branch, roteamento por grupo, campos que a notificação de conclusão não traz, criação de bots pela ficha, modelo padrão (grok-4.7, reasoning_effort high, fast false, context 500k), regra de ouro, regra 28 e camadas do Supervisor. |
+| `markdown/regras/convencoes-fabrica.md` | Padrão de branch, roteamento por grupo, campos que a notificação de conclusão não traz, criação de bots pela ficha, modelo padrão (grok-4.7, reasoning_effort high, fast false, context 500k), regra de ouro, regra 28 e camadas do Arquiteto. |
 | `markdown/decisoes/gerenciamento-secoes-por-feature-2026-11-06.md` | Registro da ligação de 06/11/2026 sobre seções por feature. É documento histórico; trechos ainda descrevem os scripts como futuros (ver pendências). |
 | `markdown/automacoes/comunicacao-bidirecional-cursor.md` | Fluxo real da ida e da volta com o Cursor: passo a passo, payload, o que vem e o que não vem, casamento, pedido órfão e varredura. |
 | `markdown/automacoes/automacao-receptora-cursor.md` | Desenho da receptora única de webhooks do Cursor. Inativa, sem uso previsto por enquanto (futuro/opcional); fora do fluxo. |
@@ -297,20 +297,20 @@ Arquivos com sufixo `-anterior`, `.pre-*` ou `.bak*` são backups e não valem. 
 | `markdown/decisoes/secao-por-fase-e-ajustes-supervisor-2026-11-13.md` | Decisões de 13/11/2026: grupo por fase, canal da feature e remoção do grupo de direção. |
 | `docs/consumo/*.html` | Painéis de consumo de tokens de 13/11/2026 (tarde e dia inteiro) comparados com 8/11/2026. |
 | `contratos/execucao-verificacao/fluxo-contrato-verificacao.md` | Contrato de execução e verificação: as 8 fases, quem faz, o artefato de cada uma e os limites de rodadas. |
-| `skills/supervisor-regras.md` | Camada 1 das regras do Supervisor: núcleo sempre presente, gatilho de carregamento por fase e índice dos blocos (as referências “seção N de supervisor-regras” resolvem por esse índice). |
-| `skills/supervisor-*.md` (camada 2) | Oito skills por função: `supervisor-fases`, `supervisor-research`, `supervisor-review-merge`, `supervisor-criacao-secao`, `supervisor-destruicao`, `supervisor-operacao-cursor`, `supervisor-comunicacao-humana` e `supervisor-logs`. |
+| `skills/arquiteto-regras.md` | Camada 1 das regras do Arquiteto: núcleo sempre presente, gatilho de carregamento por fase e índice dos blocos (as referências “seção N de arquiteto-regras” resolvem por esse índice). |
+| `skills/arquiteto-*.md` (camada 2) | Sete skills por função: `arquiteto-fases`, `arquiteto-research`, `arquiteto-review-merge`, `arquiteto-destruicao`, `arquiteto-operacao-cursor`, `arquiteto-comunicacao-humana` e `arquiteto-logs`. |
 | `excalidraw/**/*.excalidraw` | Diagramas de cada fase, do contrato, do acompanhamento da comunicação e do gerenciamento de seções. |
 
 ## 12. Onde vive cada coisa
 
 | O quê | Onde | Observação |
 | --- | --- | --- |
-| Regras do Supervisor (fonte) | box: `/home/box/agent-data/workflows/supervisor-*/SKILL.md` (9 skills) | Espelho no PC: `skills/*.md`. Conferido em 13/11/2026: os 9 arquivos iguais ao box depois de normalizar o fim de linha. |
+| Regras do Arquiteto (fonte) | box: `/home/box/agent-data/workflows/arquiteto-*/SKILL.md` (8 skills) | Espelho no PC: `skills/arquiteto-*.md`. Conferido em 14/11/2026: os 8 arquivos idênticos byte a byte ao box. As skills `supervisor-*` do box são da V1. |
 | Regras dos demais bots (fonte viva) | descrição de cada bot (`/home/box/agent-data/agents/<id>/profile.json`), atualizada pelo UpdateAgent | Documentação e modelo de criação: ficha em `markdown/modelos/`. |
 | Decisões | `markdown/decisoes/` | |
 | Diagramas | `excalidraw/` (arquivos são a fonte) | Links em `excalidraw/LINKS.md` (05/11/2026). |
 | Scripts de criação e destruição, config, evidências e logs | `C:\Users\Elienaldo\GrokBot-Scripts` (fora do Git) | Criação: `criar-secao-feature.py` + `criar-secao-feature.ps1`. Destruição: `destruir-secao-api.py`, `grokbot_api_client.py`, `destruir-secao-config.json`. Evidências: `diagnostico-apiinterna-stageA-1112`, `-stageB-1112`, `-stage6-1113`. Log: `logs\destruir-secao-api.jsonl`. |
-| Log de handoff dos bots | `logs/consumo-tokens.jsonl` (fora do Git) | Regra no `supervisor-logs`. Registra bot, fase, feature, modelo e handoff; tokens só se a API devolver. |
+| Log de handoff dos bots | `logs/consumo-tokens.jsonl` (fora do Git) | Regra no `arquiteto-logs`. Registra bot, fase, feature, modelo e handoff; tokens só se a API devolver. |
 | Backups | PC: `backups/` (projeto) e pastas `backup-*` em `GrokBot-Scripts`; box: `/workspace/backups/` | Nunca versionados. |
 | Páginas (Canvas) | Biblioteca do Mestre de obras | Auditoria de consumo de 12/11/2026, Auditoria de consumo — cadastro de fornecedor, Boletim de desempenho dos bots, PR 4 · Decisão da review de Fornecedores, Central de bots, Loop de review de PR do Adega. Todas privadas. |
 | Rotinas | Bots | Do Mestre de obras: só `Receptor de teste: webhook do Cursor`, pausada. Receptoras **Fábrica — bloqueio criação** e **Fábrica — bloqueio destruição**: ativas, confirmadas pelo Elienaldo em 08/11/2026 (não conferidas diretamente nesta varredura). Varredura de status do Supervisor: ver seção 3. |

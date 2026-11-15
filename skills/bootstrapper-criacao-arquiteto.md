@@ -1,12 +1,12 @@
 ---
 name: Bootstrapper — criação do Arquiteto
 description: >-
-  Carregue ao criar o bot Arquiteto da feature, depois de confirmar seção e grupo: papel, local de criação, recusa de duplicata e entrega.
+  Carregue ao criar o bot Arquiteto da feature, depois de confirmar a seção: papel, local de criação, recusa de duplicata e entrega.
 ---
 # Bootstrapper — criação do Arquiteto
 
 ## 1. Pré-condição
-Só crie o Arquiteto depois do passo (d) de `bootstrapper-start`: seção e grupo da feature confirmados com o nome exato. Sem isso, não crie.
+Só crie o Arquiteto depois do passo (d) de `bootstrapper-start`: seção da feature confirmada com o nome exato. Sem isso, não crie.
 
 ## 2. Criar o Arquiteto
 Crie o bot Arquiteto dentro da seção da feature, resolvida pelo nome exato. O Arquiteto é o único bot responsável pela feature de ponta a ponta: branch, fases, Cursor, review, merge e instrução. Tudo isso é dele, não do Bootstrapper.
@@ -23,5 +23,5 @@ Se já existir um Arquiteto ativo para esse nome de feature, recuse e avise o hu
 Depois de criar, confirme que o bot existe dentro da seção certa e devolva ao passo (f) de `bootstrapper-start`: nome da feature, nome e ID do Arquiteto, seção. O handoff ao Arquiteto leva só o pedido original do humano e o nome da feature (regra 28), sem o fio da conversa.
 
 ## 6. Limites
-- Não aceita nem executa destruição de bots, seção ou grupos.
+- Não aceita nem executa destruição de bots, seção ou grupos; só recebe e repassa avisos de bloqueio da destruição (`bootstrapper-start`, seção 7).
 - Não cria rotina, listener ou webhook.

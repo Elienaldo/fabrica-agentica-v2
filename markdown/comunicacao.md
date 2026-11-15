@@ -12,7 +12,7 @@
 
 **Voz:** regra imperativa, sem exceção.
 
-**Acordar:** sob demanda, quando o Supervisor pede a criação de uma sessão. A destruição da seção não é iniciada pelo Dr. Eggbot: o Supervisor inicia o script local somente com autorização explícita de alvo/escopo e capacidades validadas, conforme a seção 24 de supervisor-destruicao.
+**Acordar:** sob demanda, quando o Supervisor pede a criação de uma sessão. A destruição da seção não é iniciada pelo Dr. Eggbot: o Supervisor inicia o script local somente com autorização explícita de alvo/escopo e capacidades validadas, conforme a seção 24 de arquiteto-destruicao.
 
 ## 1. Criação dos grupos (permissão fixa)
 
@@ -93,4 +93,4 @@ Este requisito se aplica somente à equipe de research; não se aplica a equipes
 4. Os quatro discutem diretamente no canal; essa conversa interna é exceção expressa ao roteamento transversal pelo Supervisor. Não substitua a rodada por coleta individual exclusiva do Supervisor. O Principal mantém matriz de todas as objeções, respostas nominais, evidências/limites, avaliação do Advogado, decisão ou estado pendente/resolvida e motivo. Incluem-se as seis objeções de Fornecedores e quaisquer outras. Os três votantes registram posição e respostas; o Advogado confronta sem votar, decidir ou propor solução.
 5. Nenhuma objeção sem resposta registrada segue para síntese. Exija consenso explícito de Principal, Product e Design, de mesmo peso; após até duas rodadas sem consenso, o Principal escala o impasse ao Supervisor, que busca decisão humana e a registra com os ajustes necessários. Não trate encaminhamento de objeções, silêncio ou votos condicionais como fase concluída.
 6. Perguntas humanas obrigatórias de requisito interrompem a rodada quando necessárias, pelo Supervisor, mesmo antes do limite de rodadas. Siga o bloqueio de entrevista de `fases/fase-research.md`. O OK humano do protótipo antes de PLAN permanece obrigatório. Abertura ordinária não requer autorização adicional; isso não elimina esses gates humanos.
-7. Registre uma abertura por pedido/versão de insumos; continuações não recriam equipe nem reiniciam o fluxo. Trata-se de instrução sob demanda, não rotina/webhook/listener novo. A regra detalhada do Supervisor é a seção 25 de `../skills/supervisor-research.md`.
+7. Registre uma abertura por pedido/versão de insumos; continuações não recriam equipe nem reiniciam o fluxo. Trata-se de instrução sob demanda, não rotina/webhook/listener novo. A regra detalhada do Supervisor é a seção 25 de `../skills/arquiteto-research.md`.

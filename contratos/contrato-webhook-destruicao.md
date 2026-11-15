@@ -2,7 +2,7 @@
 
 ## Responsável, chamada e limites
 
-O Supervisor é o responsável por iniciar o script Python local de destruição da seção da feature, por Shell sancionado no PC registrado, conforme a seção 24 de supervisor-destruicao e o contrato de destruição. Não pede ao Dr. Eggbot que inicie a destruição. Exige autorização humana explícita para o alvo e o alcance da exclusão e capacidades reais validadas; fim da feature, merge, produção ou aprovação de finalização, por si só, não autorizam destruir. Enquanto validated=false ou faltar validação, não inicia a destruição real: informa o bloqueio ao humano, sem alterar flags, guardas ou evidências para liberar a operação. A chamada local condicionada é:
+O Arquiteto é o responsável por iniciar o script Python local de destruição da seção da feature, por Shell sancionado no PC registrado, conforme a seção 24 de arquiteto-destruicao e o contrato de destruição. Não delega a outro bot o início da destruição. Exige autorização humana explícita para o alvo e o alcance da exclusão e capacidades reais validadas; fim da feature, merge, produção ou aprovação de finalização, por si só, não autorizam destruir. Enquanto validated=false ou faltar validação, não inicia a destruição real: informa o bloqueio ao humano, sem alterar flags, guardas ou evidências para liberar a operação. A chamada local condicionada é:
 
 ```powershell
 py -3 "C:\Users\Elienaldo\GrokBot-Scripts\destruir-secao-feature.py" "cadastro-fornecedor" --confirmar-exclusao "cadastro-fornecedor" --config "C:\Users\Elienaldo\GrokBot-Scripts\destruir-secao-config.json"
@@ -32,4 +32,4 @@ POST JSON; Content-Type application/json; Authorization Bearer sender key e X-Au
 
 execution_id string única; script literal destruir-secao-feature.py; exit inteiro2; erro texto não vazio; status literal aguardando_humano. execution_id é o nome estável do log dessa execução. Repetir o CLI cria outra execução, não é retry do aviso anterior.
 
-notification no JSON final de stdout distingue not_configured, invalid_configuration, http_accepted, http_rejected, send_failed e notifier_error. HTTP200 é somente aceitação; delivery_confirmed=false não comprova aviso humano ou recebimento confirmado. Supervisor deve correlacionar execução e avisar o humano; notificação não é autorização para nova tentativa de exclusão.
+notification no JSON final de stdout distingue not_configured, invalid_configuration, http_accepted, http_rejected, send_failed e notifier_error. HTTP200 é somente aceitação; delivery_confirmed=false não comprova aviso humano ou recebimento confirmado. O Arquiteto deve correlacionar execução e avisar o humano; notificação não é autorização para nova tentativa de exclusão.
