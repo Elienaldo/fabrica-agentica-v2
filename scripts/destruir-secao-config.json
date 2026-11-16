@@ -1,0 +1,74 @@
+{
+    "schema": 1,
+    "validated": false,
+    "validation_evidence": null,
+    "sidebar": {
+        "type": "Group",
+        "class_token": "sand-agents-sidebar"
+    },
+    "scroll_container": {
+        "type": "Group",
+        "class_token": "ui-scroll-area__viewport"
+    },
+    "inventory": {
+        "no_virtualization_verified": false,
+        "complete_sidebar_verified": false,
+        "silent_content_recycle_observed": true,
+        "enumeration_mode": "target_section_on_screen",
+        "observation_evidence": "diagnostico-inventario-alvo-t1089/prova-virtualizacao-silenciosa.json; diagnostico-ensaio-teste-cirurgiao-t1089"
+    },
+    "bot_delete": {
+        "validated": false,
+        "menu_name": "Excluir",
+        "dialog_type": "Window",
+        "dialog_name_template": "Excluir “{target}”",
+        "dialog_text_template": "Isso exclui permanentemente o Bot e seu histórico de chat. Essa ação não pode ser desfeita.",
+        "confirm_button": "Excluir",
+        "validation_evidence": null,
+        "context_menu_name": "Ações do Bot",
+        "cancel_button": "Cancelar",
+        "mapping_evidence": "t1111: menu 'Ações do Bot' (itens Fixar, Mover para, Marcar como não lido, Renomear Bot, Copiar ID da conversa, Ocultar da barra lateral, Excluir) lido por UIA em 11/11 19:5x na janela principal; diálogo herdado do ensaio t1089, conferido pelo abrir-e-cancelar t1111. validated continua false."
+    },
+    "section_delete": {
+        "validated": false,
+        "menu_name": "Excluir",
+        "dialog_type": "Window",
+        "dialog_name_template": "Excluir “{target}”",
+        "dialog_text_template": "Os Bots dela vão para Sem seção. Nenhum Bot é excluído.",
+        "confirm_button": "Excluir",
+        "validation_evidence": null,
+        "context_menu_name": "Ações da seção",
+        "cancel_button": "Cancelar",
+        "mapping_evidence": "diagnostico-t924-20261107/antes-confirmar.json; mapa observado, capacidade real continua não liberada"
+    },
+    "escopo_validacao": "Campos de topo (validated, validation_evidence, inventory, bot_delete, section_delete) = rota de TELA (UIA), NAO validada: exige autorizacao de uso unico + abrir-e-cancelar + confirmacao por nome. A validacao de 12/11/2026 (Stage A+B) vale so para o bloco api_interna. ROTA DE TELA (UIA) APOSENTADA em 12/11/2026 por decisao do Elienaldo: nao usar; a rota de API interna e a unica rota de destruicao.",
+    "api_interna": {
+        "escopo": "Rota API interna (destruir-secao-api.py --api-real + grokbot_api_client.py). Nao vale para a rota de tela (UIA).",
+        "validated": true,
+        "validation_evidence": "Stage A + Stage B 12/11/2026: RELATORIO-stageB.md; diagnostico-apiinterna-stageA-1112/RESUMO-stageA.md; diagnostico-apiinterna-stageA-1112/agents.json; diagnostico-apiinterna-stageA-1112/prova-nao-virtualizacao.json; diagnostico-apiinterna-stageA-1112/secoes.json; diagnostico-apiinterna-stageA-1112/variantes-list-agents.json; diagnostico-apiinterna-stageB-1112/agents-antes.json; diagnostico-apiinterna-stageB-1112/agents-apos-delete.json; diagnostico-apiinterna-stageB-1112/eventos.jsonl; diagnostico-apiinterna-stageB-1112/resultado-destruir-secao-api.json; diagnostico-apiinterna-stageB-1112/settings-backup-antes.json; diagnostico-apiinterna-stageB-1112/verif-criar-secao.json; diagnostico-apiinterna-stageB-1112/verif-delete-bots.json; diagnostico-apiinterna-stageB-1112/verif-excluir-secao.json",
+        "inventory": {
+            "no_virtualization_verified": true,
+            "complete_sidebar_verified": true,
+            "enumeration_mode": "api_interna",
+            "observation_evidence": "diagnostico-apiinterna-stageA-1112/prova-nao-virtualizacao.json; diagnostico-apiinterna-stageA-1112/agents.json; diagnostico-apiinterna-stageA-1112/secoes.json; diagnostico-apiinterna-stageA-1112/variantes-list-agents.json; diagnostico-apiinterna-stageA-1112/RESUMO-stageA.md (API interna, ListGrokBotAgents truncated=false + GetGrokBotUserRuntimeSettings; prova UIA antiga de reciclagem silenciosa da UI continua valida so para o modo UI)"
+        },
+        "bot_delete": {
+            "validated": true,
+            "rpc": "aiserver.v1.GrokBotService/DeleteGrokBotAgent {id: agentId UUID}",
+            "validation_evidence": "Stage B 12/11/2026 via API interna DeleteGrokBotAgent {id: agentId UUID}, HTTP 200 x2 em descartaveis A/B: diagnostico-apiinterna-stageB-1112/verif-delete-bots.json; diagnostico-apiinterna-stageB-1112/agents-antes.json; diagnostico-apiinterna-stageB-1112/agents-apos-delete.json; diagnostico-apiinterna-stageB-1112/eventos.jsonl; RELATORIO-stageB.md"
+        },
+        "section_delete": {
+            "validated": true,
+            "rpc": "aiserver.v1.GrokBotService/UpdateGrokBotUserRuntimeSettings (lista inteira sem a secao; regra orfao-ciente)",
+            "validation_evidence": "Stage B 12/11/2026 via API interna UpdateGrokBotUserRuntimeSettings (lista inteira sem a secao descartavel), executado por destruir-secao-api.py --api-real com regra orfao-ciente, HTTP 200, reais identicas ao backup: diagnostico-apiinterna-stageB-1112/verif-criar-secao.json; diagnostico-apiinterna-stageB-1112/verif-excluir-secao.json; diagnostico-apiinterna-stageB-1112/resultado-destruir-secao-api.json; diagnostico-apiinterna-stageB-1112/settings-backup-antes.json; diagnostico-apiinterna-stageB-1112/eventos.jsonl; RELATORIO-stageB.md"
+        },
+        "room_delete": {
+            "validated": true,
+            "rpc": "aiserver.v1.GrokBotService/DeleteGrokBotAgent {id: <id do room, kind GROK_BOT_AGENT_KIND_ROOM>} (esquema publico sem DeleteGrokBotRoom)",
+            "validation_evidence": "Stage 6 13/11/2026 19:39 Bahia via API interna DeleteGrokBotAgent {id: roomId} no grupo descartavel 9bff04c4-1b53-4285-a8fa-4643c15fb94b (descartavel-teste-room-delete-20261113), HTTP 200, grupo sumiu, demais 18 agentes intactos: diagnostico-apiinterna-stage6-1113/RESUMO-stage6.md; diagnostico-apiinterna-stage6-1113/verif-delete-room.json; diagnostico-apiinterna-stage6-1113/agents-antes.json; diagnostico-apiinterna-stage6-1113/agents-apos-delete.json; diagnostico-apiinterna-stage6-1113/eventos.jsonl; diagnostico-apiinterna-stage6-1113/chamadas.jsonl; diagnostico-apiinterna-stage6-1113/settings-apos-delete.json",
+            "nota": "Etapa 6 (grupos da feature) aprovada para implementacao pelo Elienaldo em 13/11/2026 15:20 Bahia. Teste descartavel autorizado e flag liberada pelo Elienaldo em 13/11/2026 19:36 Bahia (stage6_teste_room_delete.py). Exclusao real de grupos segue exigindo autorizacao humana do pedido e --confirmar-grupos."
+        }
+    },
+    "rota_unica": "api_interna",
+    "ui_route_status": "aposentada_2026-11-12"
+}

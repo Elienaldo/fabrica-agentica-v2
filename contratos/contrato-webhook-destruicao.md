@@ -1,35 +1,43 @@
-# Contrato operacional — destruição de seção e aviso de bloqueio
+# Contrato — destruição de seção e aviso de bloqueio ao Bootstrapper (V2)
 
-## Responsável, chamada e limites
-
-O Arquiteto é o responsável por iniciar o script Python local de destruição da seção da feature, por Shell sancionado no PC registrado, conforme a seção 24 de arquiteto-destruicao e o contrato de destruição. Não delega a outro bot o início da destruição. Exige autorização humana explícita para o alvo e o alcance da exclusão e capacidades reais validadas; fim da feature, merge, produção ou aprovação de finalização, por si só, não autorizam destruir. Enquanto validated=false ou faltar validação, não inicia a destruição real: informa o bloqueio ao humano, sem alterar flags, guardas ou evidências para liberar a operação. A chamada local condicionada é:
+## Quem dispara
+- O **Arquiteto** roda no PC, só com autorização humana explícita de alvo e escopo, conforme `contratos\contrato-destruicao-api-interna.md`:
 
 ```powershell
-py -3 "C:\Users\Elienaldo\GrokBot-Scripts\destruir-secao-feature.py" "cadastro-fornecedor" --confirmar-exclusao "cadastro-fornecedor" --config "C:\Users\Elienaldo\GrokBot-Scripts\destruir-secao-config.json"
+py -3 "C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\scripts\destruir-secao-api.py" --secao-id "<id da seção>" --api-real
 ```
 
-Nome deve estar NFC, sem espaços externos, e confirmação deve ser idêntica. Estado atual: modo real bloqueado por validated=false, evidências ausentes e inventário/capacidades não liberados. Configurar a notificação não libera exclusão. Não alterar booleans como substituto de evidência real.
+- Sem `--executar` é só planejamento (dry-run). Execução real e regras de confirmação: ver o contrato de API interna.
+- Fim da feature, merge ou aprovação, sozinhos, não autorizam destruir.
 
-## Sequência e proteção
+## Bot protegido
+- **Somente o Bootstrapper** (por ID ou nome exato). Se aparecer no alvo, o script para antes de excluir qualquer coisa.
 
-Após preflight/capacidades e inventário completo sem ambiguidades, o adapter localiza a seção pelo nome exato, registra alvos e exclui seus bots antes de excluir a seção. Até duas passagens somente sobre remanescentes confirmados após reconciliação; nunca retry cego após submit/timeout incerto. Falha persistente interrompe antes de apagar seção. Se seção desaparecer, relê estado sem tentar outra seção.
+## Saída
+- JSON no terminal e linha no log `scripts\logs\destruir-secao-api.jsonl`, com `status`, `erro`, `stage`, `needs_human_notification`, `motivos_aviso_humano` e, quando houver aviso, `notification`.
+- Exit: 0 sucesso ou dry-run; 2 bloqueio; 1 falha.
 
-Antes da seção, exige inventário vazio novamente e diálogo específico inequívoco. Seção Fábrica Agêntica/Uso Pessoal e bots permanentes Âncora/Supervisor/Dr Eggbot são protegidos. Âncora no alvo faz abortar antes de exclusão: deve ser devolvida à origem com autorização apropriada. Seção da sidebar não é sessão Cursor. Não confundir ocultação, movimento para Sem seção e exclusão de bot. RuntimeIds não são IDs backend estáveis.
-
-Stdout JSON e log_dir/resultado.json informam status, stage, removed, remanescentes e needs_human_notification. Exit2 significa blocked_or_stopped/erro; exit0 somente sucesso reconciliado permitido pelo wrapper. Falha do processo filho não vira sucesso de JSON anterior. Nenhuma mensagem externa é enviada pelo próprio PowerShell; o hook Python descrito abaixo atende somente bloqueio inicial.
-
-## Aviso automático existente
-
-Somente stage=preflight e exit final2, fora do modo de inspeção, o wrapper tenta um aviso real ao Supervisor. Inclui qualquer motivo de bloqueio nessa etapa. Outros erros/stages permanecem saída/log com needs_human_notification, sem envio automático por esse hook.
-
-Rotina exclusiva: f-brica-bloqueio-destrui-o.
-URL: https://api2.cursor.sh/automations/webhook/59b27e72-59b5-56bf-b08d-d81486a626cf
-Ambiente do processo: FABRICA_SUPERVISOR_WEBHOOK_URL e FABRICA_SUPERVISOR_WEBHOOK_KEY. Variáveis User persistentes precisam ser herdadas/carregadas por processos já abertos. Nunca usar chave/variáveis da criação.
-
-POST JSON; Content-Type application/json; Authorization Bearer sender key e X-Automation-Key com a mesma chave. Timeout8s, uma tentativa por execução, sem retry/redirecionamento. Segredo nunca em fonte/argumentos/chat/log. Ausência de config: not_configured, sem envio; falha de transporte preserva exit2 e needs_human_notification. Sem outbox/reenvio automático.
+## Aviso por webhook (só no bloqueio inicial)
+- **Quando envia:** só quando o script termina com **exit 2 e `stage=preflight`** (bloqueio na checagem inicial, antes de ler ou excluir qualquer coisa). Uma vez por execução.
+- **Demais erros e bloqueios:** nada é enviado. Fica só `needs_human_notification=true` no resultado e no log, e o **Arquiteto repassa** ao humano.
+- **Quem envia:** `scripts\notificacao_bootstrapper.py`, chamado pelo `destruir-secao-api.py` antes de imprimir o JSON final. Erro no notificador vira `notification.status=notifier_error` e nunca muda status, erro ou exit.
+- **Receptora:** rotina do Bootstrapper **"Fábrica V2 — bloqueio destruição"**. Ela só registra o evento e avisa o humano. Não cria, não executa, não corrige e não aciona outro bot.
+- **Variáveis:** `FABRICA_V2_WEBHOOK_URL` e `FABRICA_V2_WEBHOOK_KEY`. Ainda a configurar pelo humano no PC, a partir da barra lateral do Bootstrapper. Lidas do ambiente do processo ou, se faltarem, das variáveis User do Windows. Chave nunca no código, em argumentos, no chat ou em log.
+- **Validação:** a URL precisa seguir `https://api2.cursor.sh/automations/webhook/<id>`; fora disso, `invalid_configuration` e nada é enviado. Sem URL ou chave: `not_configured`.
+- **Envio:** POST JSON com `Authorization: Bearer <chave>` e `X-Automation-Key: <chave>`. Timeout de 8 s, **uma tentativa, sem retry** e sem redirecionamento. Chave e URL são trocadas por `[redigido]` no texto enviado.
 
 ## Payload
+| Campo | Valor |
+|---|---|
+| `execution_id` | ID da execução (o mesmo do log) |
+| `script` | `destruir-secao-api.py` |
+| `feature` | nome da seção, se já conhecido (no bloqueio inicial costuma vir vazio) |
+| `exit` | `2` |
+| `erro` | texto do campo `erro` do resultado |
+| `motivos_aviso_humano` | lista do resultado |
+| `status` | `aguardando_humano` |
 
-execution_id string única; script literal destruir-secao-feature.py; exit inteiro2; erro texto não vazio; status literal aguardando_humano. execution_id é o nome estável do log dessa execução. Repetir o CLI cria outra execução, não é retry do aviso anterior.
-
-notification no JSON final de stdout distingue not_configured, invalid_configuration, http_accepted, http_rejected, send_failed e notifier_error. HTTP200 é somente aceitação; delivery_confirmed=false não comprova aviso humano ou recebimento confirmado. O Arquiteto deve correlacionar execução e avisar o humano; notificação não é autorização para nova tentativa de exclusão.
+## Garantias e limites
+- `notification.status`: `not_configured`, `invalid_configuration`, `http_accepted`, `http_rejected`, `send_failed` ou `notifier_error`.
+- **HTTP 200 só prova que o endpoint aceitou**, não que o humano leu: `delivery_confirmed` fica sempre `false`.
+- O aviso não autoriza nova tentativa de exclusão. Rodar de novo é outra execução, não retry do aviso.

@@ -4,7 +4,7 @@
 )
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
-$Origin='Fábrica Agêntica'; $AnchorName='Âncora'; $TemporaryName='Nova seção'
+$Origin='Fábrica Agêntica V2'; $AnchorName='Âncora V2'; $TemporaryName='Nova seção'
 $State=[ordered]@{status='EM_ANDAMENTO';stage='precheck';section_name=$null;section_id=$null;last_confirmed_section=$null;position_current_uncertain=$false;creation_attempted=$false;created=$false;name_confirmed=$false;returned=$false;empty_section_persists=$null;empty_section_bot_buttons=$null;anchor_automation_ids=@();events=@()}
 $OwnMenu=$false
 function Save-State {
@@ -95,7 +95,7 @@ public static class SectionUI {
     function Headers($side){return @((By-Type $side ([System.Windows.Automation.ControlType]::Button))|Where-Object{Has-Token $_ 'sand-agents-section__header'})}
     function Section($node){$p=$node;for($i=0;$p -and $i -lt 10;$i++){if(Has-Token $p 'sand-agents-section'){return $p};$p=$RW.GetParent($p)};throw 'Ancestral de seção não comprovado'}
     function Header($section){$r=@();$c=$RW.GetFirstChild($section);while($c){if((Has-Token $c 'sand-agents-section__header') -and $c.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button){$r += $c};$c=$RW.GetNextSibling($c)};return (One $r 'Cabeçalho direto da seção')}
-    function Anchor($side){return (One @((By-Type $side ([System.Windows.Automation.ControlType]::Button))|Where-Object{$_.Current.Name -ceq $AnchorName -and (Has-Token $_ 'sand-agent-item')}) 'Âncora na sidebar')}
+    function Anchor($side){return (One @((By-Type $side ([System.Windows.Automation.ControlType]::Button))|Where-Object{$_.Current.Name -ceq $AnchorName -and (Has-Token $_ 'sand-agent-item')}) 'Âncora V2 na sidebar')}
     function Bots($section){return @((By-Type $section ([System.Windows.Automation.ControlType]::Button))|Where-Object{Has-Token $_ 'sand-agent-item'})}
     function Remember($a,[string]$section){
         $State.last_confirmed_section=[string]$section;$State.position_current_uncertain=$false
@@ -113,7 +113,7 @@ public static class SectionUI {
         if($m.Count -eq 1){return $m[0]};return $null
     }
     function Select-FreePoint($Rect,$ChildRects,[int]$Margin=2){
-        # Pura (t1021): ponto dentro da Âncora fora de qualquer filho, para FromPoint devolver a própria Âncora. Centro primeiro; depois faixas livres esquerda/direita. Sem ponto livre: $null (falha fechada).
+        # Pura: ponto dentro da Âncora V2 fora de qualquer filho, para FromPoint devolver a própria Âncora V2. Centro primeiro; depois faixas livres esquerda/direita. Sem ponto livre: $null (falha fechada).
         $cy=[int]($Rect.Y+$Rect.Height/2);$cands=@(,@([int]($Rect.X+$Rect.Width/2),$cy))
         $kids=@($ChildRects|Where-Object{$_ -and $_.Width -gt 0 -and $_.Height -gt 0})
         if($kids.Count){$l=($kids|Measure-Object -Property X -Minimum).Minimum;$r=($kids|ForEach-Object{$_.X+$_.Width}|Measure-Object -Maximum).Maximum;$cands+=,@([int](($Rect.X+$l)/2),$cy);$cands+=,@([int](($r+$Rect.X+$Rect.Width)/2),$cy)}
@@ -137,13 +137,13 @@ public static class SectionUI {
     }
     function Open-Context([string]$expected){
         $side=Sidebar;$a=Anchor $side;$h=Header (Section $a)
-        if($h.Current.Name -cne $expected){throw 'Âncora não está na seção esperada'}
+        if($h.Current.Name -cne $expected){throw 'Âncora V2 não está na seção esperada'}
         if([SectionUI]::GetForegroundWindow().ToInt64() -ne $W.Current.NativeWindowHandle){$a.SetFocus();$null=Wait-Read {if([SectionUI]::GetForegroundWindow().ToInt64() -eq $W.Current.NativeWindowHandle){return $true};return $null} 'foco Grok Bot' 1200}
         Foreground
         $side=Sidebar;$a=Anchor $side;$h=Header (Section $a)
         if($h.Current.Name -cne $expected){throw 'Ancestralidade mudou após foco'}
         $b=$a.Current.BoundingRectangle
-        if($a.Current.IsOffscreen -or -not $a.Current.IsEnabled -or $b.IsEmpty){throw 'Âncora não visível/habilitado'}
+        if($a.Current.IsOffscreen -or -not $a.Current.IsEnabled -or $b.IsEmpty){throw 'Âncora V2 não visível/habilitado'}
         $kr=@();$k=$RW.GetFirstChild($a);while($k){$kr+=$k.Current.BoundingRectangle;$k=$RW.GetNextSibling($k)}
         $pt=Select-FreePoint $b $kr
         if(-not $pt){throw ('Point not in Anchor: sem ponto livre de filhos (filhos='+$kr.Count+')')}
@@ -168,10 +168,10 @@ public static class SectionUI {
     function Verify-Position([string]$expected){
         return (Wait-Read {
             $side=Sidebar;$m=@((By-Type $side ([System.Windows.Automation.ControlType]::Button))|Where-Object{$_.Current.Name -ceq $AnchorName -and (Has-Token $_ 'sand-agent-item')})
-            if($m.Count -gt 1){throw 'Âncora duplicado'}
+            if($m.Count -gt 1){throw 'Âncora V2 duplicado'}
             if($m.Count -eq 1){$h=Header (Section $m[0]);if($h.Current.Name -ceq $expected){return $m[0]}}
             return $null
-        } ('Âncora em '+$expected))
+        } ('Âncora V2 em '+$expected))
     }
     $side=Sidebar
     if(@(By-Type $W ([System.Windows.Automation.ControlType]::MenuItem)).Count -gt 0){throw 'Menu pré-existente de propriedade desconhecida; não fechar nem reutilizar'}
@@ -202,11 +202,11 @@ public static class SectionUI {
     $edit=Wait-Read {
         $side=Sidebar;$es=@((By-Type $side ([System.Windows.Automation.ControlType]::Edit))|Where-Object{$_.Current.Name -ceq 'Renomear seção' -and (Has-Token $_ 'sand-agent-item__name-input') -and -not $_.Current.IsOffscreen})
         if($es.Count -gt 1){throw 'Edit inline ambíguo'}
-        if($es.Count -eq 1){$an=Anchor $side;if(-not [System.Windows.Automation.Automation]::Compare((Section $es[0]),(Section $an))){throw 'Edit não pertence à seção de Âncora'};$v=$es[0].GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern);if($v.Current.Value -ceq $TemporaryName){return $es[0]}}
+        if($es.Count -eq 1){$an=Anchor $side;if(-not [System.Windows.Automation.Automation]::Compare((Section $es[0]),(Section $an))){throw 'Edit não pertence à seção de Âncora V2'};$v=$es[0].GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern);if($v.Current.Value -ceq $TemporaryName){return $es[0]}}
         return $null
-    } 'Nova seção e Edit inline com Âncora'
+    } 'Nova seção e Edit inline com Âncora V2'
     $State.created=$true;Remember (Anchor (Sidebar)) $TemporaryName
-    Note 'Criar seção criou imediatamente Nova seção com Âncora; Edit Renomear seção focado'
+    Note 'Criar seção criou imediatamente Nova seção com Âncora V2; Edit Renomear seção focado'
     Stage 'set_inline_name'
     $parent=$RW.GetParent($edit)
     if(-not (Has-Token $parent 'sand-agents-section__header')){throw 'Edit fora do cabeçalho esperado'}
@@ -246,7 +246,7 @@ public static class SectionUI {
     $State.empty_section_persists=$true
     $a=Verify-Position $Origin;Remember $a $Origin
     if(@(By-Type $W ([System.Windows.Automation.ControlType]::MenuItem)).Count -ne 0){throw 'Menu inesperado no final'}
-    $State.status='CONCLUIDO';$State.stage='done';$State.message='Seção criada; Âncora devolvido; seção vazia permanece nesta sessão. section_id deve ser obtido posteriormente pelo Supervisor/Eggbot.'
+    $State.status='CONCLUIDO';$State.stage='done';$State.message='Seção criada; Âncora V2 devolvido; seção vazia permanece nesta sessão. section_id deve ser obtido posteriormente pelo Bootstrapper (ListSections).'
     Save-State
     exit 0
 } catch {

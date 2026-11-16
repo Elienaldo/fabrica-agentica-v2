@@ -8,15 +8,15 @@ import subprocess
 import sys
 import unicodedata
 import uuid
-from notificacao_criacao import notify_creation
+from notificacao_criacao_v2 import notify_creation
 
 
 def feature_name(value: str) -> str:
     if any(unicodedata.category(c) in {"Cc", "Cf", "Cs"} for c in value):
         raise ValueError("Nome contém controle, formato invisível ou surrogate inválido.")
     name = unicodedata.normalize("NFC", value.replace("/", "-").replace("\\", "-").strip())
-    if not name or name.casefold() in {"fábrica agêntica", "âncora", "nova seção"}:
-        raise ValueError("Nome vazio ou reservado para origem/Âncora/nome temporário.")
+    if not name or name.casefold() in {"fábrica agêntica", "fábrica agêntica v2", "âncora v2", "nova seção"}:
+        raise ValueError("Nome vazio ou reservado para origem/Âncora V2/nome temporário.")
     return name
 
 
@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(__file__).resolve().parent
     execution_id = 'criar-secao-'+uuid.uuid4().hex
     report: dict = {'status':'ABORTADO', 'stage':'precheck', 'section_id':None}
-    parser = CreationParser(description='Cria seção via Âncora e devolve somente Âncora; sem exclusões.')
+    parser = CreationParser(description='Cria seção via Âncora V2 e devolve somente Âncora V2; sem exclusões.')
     parser.add_argument('nome_feature')
     parser.add_argument('--selectors', type=Path, help='Legado: configuração antiga não é compatível; opção será rejeitada antes da UI.')
     try:

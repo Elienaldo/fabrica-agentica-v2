@@ -1,7 +1,7 @@
 # Contrato — destruição da feature por API interna (V2)
 
 ## Script
-- **Script real:** `C:\Users\Elienaldo\GrokBot-Scripts\destruir-secao-api.py`, com o cliente `grokbot_api_client.py` e a configuração `destruir-secao-config.json` (bloco `api_interna`), na mesma pasta.
+- **Script real:** `C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\scripts\destruir-secao-api.py`, com o cliente `grokbot_api_client.py`, a configuração `destruir-secao-config.json` (bloco `api_interna`) e o notificador `notificacao_bootstrapper.py`, na mesma pasta.
 - **Backend:** API interna do app Grok Bot (`aiserver.v1.GrokBotService`, protocolo Connect/JSON, `https://api2.cursor.sh`), usando a sessão do app.
 - **Log:** `logs\destruir-secao-api.jsonl` ao lado do script (ou `--log-dir`), sem segredos.
 
@@ -45,7 +45,7 @@ Uma tentativa por item, sem retry. Falha ou estado incerto para tudo e mantém o
   - a seção tem qualquer bot além do Arquiteto;
   - a confirmação difere do plano, a seção é protegida ou o ID ou nome da seção diverge.
 - Todo bloqueio ou falha sai com `needs_human_notification=true`, exit 2 (bloqueio) ou 1 (falha) e o motivo registrado em `erro` e em `motivos_aviso_humano`.
-- O script não envia mensagem por conta própria: quem recebe a notificação automática de bloqueio é o **Bootstrapper**, que lê o resultado do script (campos `erro` e `motivos_aviso_humano`) e avisa o humano.
+- Só no bloqueio inicial (exit 2, `stage=preflight`) o script faz um POST de aviso à rotina do **Bootstrapper** "Fábrica V2 — bloqueio destruição", com `erro` e `motivos_aviso_humano`; a rotina só registra e avisa o humano. Nos demais casos não envia nada e o Arquiteto repassa. Detalhes em `contrato-webhook-destruicao.md`.
 
 ## Cards de execução
 - A exclusão dos cards de execução do Cursor da feature exige autorização humana explícita (regra 32).
@@ -55,11 +55,8 @@ Uma tentativa por item, sem retry. Falha ou estado incerto para tudo e mantém o
 - A proteção contra lançamento repetido não se aplica aqui: é regra de `arquiteto-operacao-cursor`.
 
 ## Variáveis de ambiente
-- `FABRICA_SUPERVISOR_WEBHOOK_URL` e `FABRICA_SUPERVISOR_WEBHOOK_KEY` continuam como estão; não renomear (lidas por `notificacao_supervisor.py` e pelos testes).
-- O `destruir-secao-api.py` não lê essas variáveis.
+- `FABRICA_V2_WEBHOOK_URL` e `FABRICA_V2_WEBHOOK_KEY`, lidas por `notificacao_bootstrapper.py` (só no bloqueio inicial). Ainda a configurar pelo humano.
+- As variáveis antigas da fábrica anterior seguem só para a V1; a V2 não as lê.
 
 ## Segurança
 - Nunca imprime nem registra token, cookies ou headers.
-
-## Evidência da etapa 6
-- `C:\Users\Elienaldo\GrokBot-Scripts\diagnostico-apiinterna-stage6-1113\`.
