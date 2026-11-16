@@ -26,3 +26,7 @@ A descrição atual do Bootstrapper (`f99cfa31…`) era idêntica à ficha intei
 
 ## Commit
 Não houve commit.
+
+
+## Atualização 22:38 Bahia: descrição no app
+- Descrição do bot Bootstrapper (f99cfa31) no app substituída pela ficha nova inteira (regra de ouro). Antes 1C5FCD0E (3624 chars) → depois 03003966 (3937 chars), idêntica à ficha 4A34BB81 (ignorando CRLF e quebra final). Backup: /workspace/backups/bootstrapper-descricao-app-20261115-2237 (box).

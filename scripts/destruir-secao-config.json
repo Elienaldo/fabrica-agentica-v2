@@ -45,7 +45,7 @@
     "api_interna": {
         "escopo": "Rota API interna (destruir-secao-api.py --api-real + grokbot_api_client.py). Nao vale para a rota de tela (UIA).",
         "validated": true,
-        "validation_evidence": "Stage A + Stage B 12/11/2026: RELATORIO-stageB.md; diagnostico-apiinterna-stageA-1112/RESUMO-stageA.md; diagnostico-apiinterna-stageA-1112/agents.json; diagnostico-apiinterna-stageA-1112/prova-nao-virtualizacao.json; diagnostico-apiinterna-stageA-1112/secoes.json; diagnostico-apiinterna-stageA-1112/variantes-list-agents.json; diagnostico-apiinterna-stageB-1112/agents-antes.json; diagnostico-apiinterna-stageB-1112/agents-apos-delete.json; diagnostico-apiinterna-stageB-1112/eventos.jsonl; diagnostico-apiinterna-stageB-1112/resultado-destruir-secao-api.json; diagnostico-apiinterna-stageB-1112/settings-backup-antes.json; diagnostico-apiinterna-stageB-1112/verif-criar-secao.json; diagnostico-apiinterna-stageB-1112/verif-delete-bots.json; diagnostico-apiinterna-stageB-1112/verif-excluir-secao.json",
+        "validation_evidence": "Stage A + Stage B, testes reais pela API interna em 12/11/2026 (leitura de inventario, criacao e exclusao de descartaveis). Registro: markdown/decisoes/2026-11-15-evidencias-capacidades-destruicao.md (evidencia bruta fora da V2 por decisao do Elienaldo).",
         "inventory": {
             "no_virtualization_verified": true,
             "complete_sidebar_verified": true,
@@ -55,17 +55,17 @@
         "bot_delete": {
             "validated": true,
             "rpc": "aiserver.v1.GrokBotService/DeleteGrokBotAgent {id: agentId UUID}",
-            "validation_evidence": "Stage B 12/11/2026 via API interna DeleteGrokBotAgent {id: agentId UUID}, HTTP 200 x2 em descartaveis A/B: diagnostico-apiinterna-stageB-1112/verif-delete-bots.json; diagnostico-apiinterna-stageB-1112/agents-antes.json; diagnostico-apiinterna-stageB-1112/agents-apos-delete.json; diagnostico-apiinterna-stageB-1112/eventos.jsonl; RELATORIO-stageB.md"
+            "validation_evidence": "Stage B 12/11/2026 via API interna DeleteGrokBotAgent {id: agentId UUID}, HTTP 200 x2 em bots descartaveis A/B. Registro: markdown/decisoes/2026-11-15-evidencias-capacidades-destruicao.md (evidencia bruta fora da V2 por decisao do Elienaldo)."
         },
         "section_delete": {
             "validated": true,
             "rpc": "aiserver.v1.GrokBotService/UpdateGrokBotUserRuntimeSettings (lista inteira sem a secao; regra orfao-ciente)",
-            "validation_evidence": "Stage B 12/11/2026 via API interna UpdateGrokBotUserRuntimeSettings (lista inteira sem a secao descartavel), executado por destruir-secao-api.py --api-real com regra orfao-ciente, HTTP 200, reais identicas ao backup: diagnostico-apiinterna-stageB-1112/verif-criar-secao.json; diagnostico-apiinterna-stageB-1112/verif-excluir-secao.json; diagnostico-apiinterna-stageB-1112/resultado-destruir-secao-api.json; diagnostico-apiinterna-stageB-1112/settings-backup-antes.json; diagnostico-apiinterna-stageB-1112/eventos.jsonl; RELATORIO-stageB.md"
+            "validation_evidence": "Stage B 12/11/2026 via API interna UpdateGrokBotUserRuntimeSettings (lista inteira sem a secao descartavel), executado por destruir-secao-api.py --api-real, HTTP 200, secoes reais identicas ao backup. Registro: markdown/decisoes/2026-11-15-evidencias-capacidades-destruicao.md (evidencia bruta fora da V2 por decisao do Elienaldo)."
         },
         "room_delete": {
             "validated": true,
             "rpc": "aiserver.v1.GrokBotService/DeleteGrokBotAgent {id: <id do room, kind GROK_BOT_AGENT_KIND_ROOM>} (esquema publico sem DeleteGrokBotRoom)",
-            "validation_evidence": "Stage 6 13/11/2026 19:39 Bahia via API interna DeleteGrokBotAgent {id: roomId} no grupo descartavel 9bff04c4-1b53-4285-a8fa-4643c15fb94b (descartavel-teste-room-delete-20261113), HTTP 200, grupo sumiu, demais 18 agentes intactos: diagnostico-apiinterna-stage6-1113/RESUMO-stage6.md; diagnostico-apiinterna-stage6-1113/verif-delete-room.json; diagnostico-apiinterna-stage6-1113/agents-antes.json; diagnostico-apiinterna-stage6-1113/agents-apos-delete.json; diagnostico-apiinterna-stage6-1113/eventos.jsonl; diagnostico-apiinterna-stage6-1113/chamadas.jsonl; diagnostico-apiinterna-stage6-1113/settings-apos-delete.json",
+            "validation_evidence": "Stage 6 13/11/2026 19:39 Bahia via API interna DeleteGrokBotAgent {id: roomId} em grupo descartavel, HTTP 200, grupo sumiu, demais 18 agentes intactos. Registro: markdown/decisoes/2026-11-15-evidencias-capacidades-destruicao.md (evidencia bruta fora da V2 por decisao do Elienaldo).",
             "nota": "Etapa 6 (grupos da feature) aprovada para implementacao pelo Elienaldo em 13/11/2026 15:20 Bahia. Teste descartavel autorizado e flag liberada pelo Elienaldo em 13/11/2026 19:36 Bahia (stage6_teste_room_delete.py). Exclusao real de grupos segue exigindo autorizacao humana do pedido e --confirmar-grupos."
         }
     },

@@ -143,4 +143,4 @@ Fabrica-Agentica-V2/
 
 - Testar de verdade os avisos por webhook (criação e destruição).
 - A criação de seção ainda depende do Âncora V2.
-- Há alterações sem commit na pasta (scripts novos, contratos, diagramas, Kanban e README): decidir o que versionar.
+- O histórico do git guarda as URLs dos webhooks das rotinas da fábrica anterior (não as da V2). Regenerar esses webhooks é decisão do humano; ver `markdown/decisoes/2026-11-15-urls-webhook-historico-git.md`.
