@@ -1,11 +1,10 @@
 # Fábrica Agêntica V2
 
-Fábrica de desenvolvimento de software feita de bots do Grok Bot e agentes de nuvem do Cursor. Recebe um pedido do humano e entrega código mergeado, passando por research, plan, implement e review, com o humano só onde a decisão é dele.
+A Fábrica Agêntica V2 é a versão nova e atualizada da Fábrica Agêntica (V1): uma fábrica de desenvolvimento de software feita de bots do Grok Bot e agentes de nuvem do Cursor. Recebe um pedido do humano e entrega código mergeado, passando por research, plan, implement e review, com o humano só onde a decisão é dele.
 
-**Dono:** Elienaldo Bittencourt · **Última atualização deste README:** 2026-11-15  
-**Pasta do projeto:** `C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2`
+A V2 foi otimizada para reduzir o consumo de tokens. A auditoria de consumo mostrou que a quantidade de bots era o grande vilão: o autoconsumo dos bots e o cache relido a cada mensagem. Por isso a V2 reduziu o número de bots. Os motivos são conhecidos, mas essa redução ainda não foi comprovada em teste real.
 
-> **Estado em 15/11/2026:** o Bootstrapper existe no app. O Arquiteto tem ficha e skills prontas e não é criado à mão no app: o Bootstrapper cria um Arquiteto exclusivo para cada feature, logo depois de criar a seção da feature. Os scripts de criação e destruição de seção estão em `scripts/`, com testes puros passando. Os avisos por webhook da V2 estão no código, as duas rotinas do Bootstrapper estão criadas e as quatro variáveis `FABRICA_V2_*` foram configuradas no PC em 15/11/2026; falta testar os avisos de verdade.
+**Dono:** Elienaldo Bittencourt · **Última atualização deste README:** 2026-11-17
 
 ## Sumário
 1. [Bots](#1-bots)
@@ -17,7 +16,6 @@ Fábrica de desenvolvimento de software feita de bots do Grok Bot e agentes de n
 7. [Padrões](#7-padrões)
 8. [Estrutura de pastas](#8-estrutura-de-pastas)
 9. [Onde vive cada coisa](#9-onde-vive-cada-coisa)
-10. [Pendências](#10-pendências)
 
 ## 1. Bots
 
@@ -27,7 +25,7 @@ Fábrica de desenvolvimento de software feita de bots do Grok Bot e agentes de n
 | **Arquiteto** | Um por feature, dentro da seção da feature | Conduz a feature de ponta a ponta: classifica, decide a fase, conduz research, plan, implement e review, opera o Cursor, faz o merge e, só com autorização humana explícita, dispara a destruição. É o único bot da feature. Ficha: `markdown/modelos/arquiteto.md`. Skills: `arquiteto-regras` (camada 1) e 7 de camada 2. Criado dinamicamente pelo Bootstrapper, um por feature, logo depois da seção; nunca é criado à mão no app. |
 | **Âncora V2** | Permanente, de apoio | Não participa da feature. O script de criação usa o Âncora V2 para abrir a seção nova e depois o devolve à seção Fábrica Agêntica V2. |
 
-**Bootstrapper com dois papéis, por design:** dar a partida da feature e repassar ao humano os avisos de bloqueio dos webhooks é intencional, não pendência: o aviso de bloqueio da destruição pode chegar quando o Arquiteto da feature já não existe, então a devolução ao humano fica com o Bootstrapper.
+**Bootstrapper com dois papéis, por design:** (1) dar a partida de cada feature — criar o nome, a seção e o Arquiteto — e sair de cena; (2) repassar ao humano os avisos de bloqueio dos webhooks. O aviso de bloqueio da destruição pode chegar quando o Arquiteto da feature já não existe, então a devolução ao humano fica com o Bootstrapper.
 
 **Cursor:** agentes de nuvem que escrevem o código numa VM própria, em branch própria. Só o Arquiteto abre sessão no Cursor.
 
@@ -47,7 +45,14 @@ flowchart LR
   M --> A[Aviso ao humano]
 ```
 
-- **Classificação:** 5 perguntas SIM/NÃO (arquitetura, mais de um serviço, ambiguidade, difícil de desfazer, autenticação/dados pessoais/segredos). A tag do humano (ex.: "utilize como alta") tem prioridade. Não há roteamento fixo: o Arquiteto pode ir direto ao plan ou ao implement.
+- **Classificação:** o Arquiteto classifica a demanda em criticidade, risco e complexidade (cada uma baixa, média ou alta) e responde SIM ou NÃO a estas 5 perguntas:
+  1. **Muda arquitetura?** Pergunta se a demanda altera a arquitetura.
+  2. **Afeta mais de um serviço, ou um componente de que muitos dependem?** Pergunta se o alcance vai além de um único serviço, ou se atinge um componente do qual muitos outros dependem.
+  3. **Tem ambiguidade de requisito?** Pergunta se o requisito está ambíguo — se não está claro o que deve ser feito.
+  4. **É difícil de desfazer?** Pergunta se a mudança é difícil de reverter: se mexe em dados persistidos, faz migração ou quebra contrato de API.
+  5. **Toca autenticação, permissões, dados pessoais ou segredos?** Pergunta se a demanda entra em autenticação, permissões, dados pessoais ou segredos.
+
+  Se a demanda trouxer a classificação indicada pelo humano (ex.: "utilize como alta"), essa tag tem prioridade e o Arquiteto a usa, sem passar pelas perguntas. Com as respostas e a avaliação, o Arquiteto decide a fase: research, plan ou implement. Não há roteamento fixo: o Arquiteto pode ir direto ao plan ou ao implement.
 - **Research:** o Arquiteto acumula engenharia de produto, protótipo e matriz de objeções. O OK humano do protótipo é obrigatório antes do plan.
 - **Plan e implement:** sessão nova do Cursor com a skill `tlc-spec-lean`.
 - **Review:** obrigatória antes do merge, com a `the-judge`. No máximo 3 rodadas.
@@ -56,15 +61,14 @@ flowchart LR
 
 ## 3. Comunicação
 
-- Não há grupo inicial nem grupo de direção.
 - Um grupo por fase: `<fase>-<feature>` (research, plan, implement, review), criado pelo Arquiteto. Membros: só o Arquiteto e o humano.
-- O Cursor não entra em grupo. O retorno chega ao Arquiteto pela notificação de conclusão do agente de nuvem; o webhook do Cursor não é usado.
+- O Cursor não entra em grupo. O retorno chega ao Arquiteto pela notificação de conclusão do agente de nuvem.
 - O Bootstrapper só fala com o humano no pedido e nos avisos dos scripts.
 
 ## 4. Criação de seção
 
 - Quem roda: o Bootstrapper.
-- Comando: `py -3 "C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\scripts\criar-secao-feature.py" "<nome-da-feature>"`.
+- Comando: `py -3 scripts\criar-secao-feature.py "<nome-da-feature>"`.
 - O script (`criar-secao-feature.py` + `criar-secao-feature.ps1`) usa o Âncora V2 para criar a seção, devolve o Âncora V2 à seção Fábrica Agêntica V2 e confere que a seção ficou vazia. Não cria bots.
 - Só depois de sucesso confirmado o Bootstrapper cria, dentro da seção, o Arquiteto exclusivo daquela feature, a partir da ficha `markdown/modelos/arquiteto.md`. O Arquiteto não é criado à mão no app: cada feature nova ganha o seu.
 - Contrato: `contratos/contrato-webhook-criacao.md`.
@@ -88,7 +92,7 @@ flowchart LR
 | Variáveis | `FABRICA_V2_CRIACAO_WEBHOOK_URL` / `_KEY` | `FABRICA_V2_WEBHOOK_URL` / `_KEY` |
 
 - As rotinas só registram e avisam o humano. Não criam, não executam, não corrigem e não acionam outro bot.
-- As duas rotinas estão criadas e as quatro variáveis foram configuradas no PC em 15/11/2026 (`markdown/decisoes/2026-11-15-variaveis-webhook-criacao-v2.md`). Os scripts só enxergam as variáveis em terminais abertos depois da gravação.
+- Os scripts leem as variáveis de ambiente da tabela acima. Só enxergam as variáveis em terminais abertos depois da gravação.
 - Uma tentativa, sem retry. HTTP 200 não prova que o humano leu.
 - Nos demais erros da destruição nada é enviado: o resultado traz `needs_human_notification` e o Arquiteto repassa.
 - Testes puros (sem rede): `scripts/test_notificacao_criacao_v2.py`, `scripts/test_notificacao_bootstrapper.py` e `scripts/test_destruir_secao_api.py`.
@@ -130,7 +134,7 @@ Fabrica-Agentica-V2/
 
 | O quê | Onde |
 | --- | --- |
-| Skills (fonte) | box: `/home/box/agent-data/workflows/arquiteto-*` e `bootstrapper-*`. Espelho no PC: `skills/`. Os 10 arquivos conferem byte a byte com o box em 15/11/2026. |
+| Skills (fonte) | box: `/home/box/agent-data/workflows/arquiteto-*` e `bootstrapper-*`. Espelho no PC: `skills/`. |
 | Fichas dos bots | `markdown/modelos/arquiteto.md` e `markdown/modelos/bootstrapper.md` |
 | Visão geral e regras comuns | `markdown/modelos/fábrica-agêntica-v2.md` |
 | Scripts, config e testes | `scripts/` |
@@ -138,9 +142,3 @@ Fabrica-Agentica-V2/
 | Kanban | `checklist-v2.html` |
 | Log de tokens | `logs/consumo-tokens.jsonl` |
 | Backups | `C:\Users\Elienaldo\Projetos\Fabrica-Agentica-backups\` (fora do Git) |
-
-## 10. Pendências
-
-- Testar de verdade os avisos por webhook (criação e destruição).
-- A criação de seção ainda depende do Âncora V2.
-- O histórico do git guarda as URLs dos webhooks das rotinas da fábrica anterior (não as da V2). Regenerar esses webhooks é decisão do humano; ver `markdown/decisoes/2026-11-15-urls-webhook-historico-git.md`.
