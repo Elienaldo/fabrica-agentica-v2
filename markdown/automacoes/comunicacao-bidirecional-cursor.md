@@ -46,7 +46,7 @@ A branch `fix/20261103-versao-adega-v1-1` está no remoto, com o commit `44836f8
 
 | Campo | Onde aparece |
 | --- | --- |
-| Status | "finished" na primeira linha. Só foi visto o caso de conclusão; como chegam erro e timeout ainda não foi observado, por isso a varredura cobre esses casos |
+| Status | "finished" na primeira linha. Só foi visto o caso de conclusão; como chegam erro e timeout ainda não foi observado |
 | ID do agente (`bc-…`) | no título da notificação e no link `Agent: https://cursor.com/agents/bc-…` |
 | Resumo escrito pelo agente | branch, commit, arquivos alterados, testes e build, como ver a aplicação |
 | Aviso de PR | linha informando que ainda não há link de pull request |
@@ -75,18 +75,16 @@ Regra oficial, seção 9 da skill `arquiteto-operacao-cursor`:
 - O **humano identifica o pedido manualmente**, pela branch (padronizada com data por solicitação) ou indo ao repositório.
 - O Arquiteto não tenta adivinhar o pedido por branch ou repositório e não relança nada.
 
-## 6. Varredura de status: pendência
+## 6. Sem varredura de status
 
-- Na fábrica anterior havia a rotina "Varredura de status dos agentes do Cursor" (a cada cerca de 10 minutos, consulta por ID do agente e run, `GET /v1/agents/{id}/runs/{runId}`), para o caso de a notificação não chegar (erro, timeout, notificação perdida).
-- **Na V2 não há evidência de que essa rotina exista** (nenhum documento da V2, nenhuma skill `arquiteto-*` e nem a ficha do Arquiteto citam a rotina). Decidir com o humano se a V2 precisa de uma rede de segurança equivalente.
-- Recomendado na fábrica anterior e ainda não implementado: checagem diária de órfãos (`GET /v1/agents` comparado com o livro-razão, com filtros de data, repositório e prefixo do título) e alerta para pedido aberto sem ID de agente. Só avisaria o humano.
-- Consulta de status, quando houver, é sempre por ID de agente e por run, nunca global (seção 2 de `arquiteto-regras`). Qualquer rotina nova só com o ok do humano.
+- Na V2 o Arquiteto lança o agente no Cursor e recebe de volta a notificação de conclusão. Não existe varredura de status.
+- Se a notificação não chegar, o humano confere o agente pelo link `https://cursor.com/agents/bc-…`, com o ID gravado no livro-razão.
 
 ## 7. Limites conhecidos
 
 - A notificação não traz o ID do modelo nem a duração: a plataforma escolhe o modelo, e a conferência real é pelo painel de uso.
 - O dev server e o preview ficam na VM do agente, em endereços locais; sem túnel público o humano só vê os prints.
-- Pendências de decisão do humano: modelo explícito no lançamento; checagem diária de órfãos.
+- Pendência de decisão do humano: modelo explícito no lançamento.
 
 ## 8. Fases, push, review e ambiente dev
 

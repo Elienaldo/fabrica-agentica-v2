@@ -22,8 +22,6 @@ spec = importlib.util.spec_from_file_location(
 mod = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
-# Notificador hermético: sem ambiente, sem variáveis User e sem rede.
-mod.NOTIFICACAO_OPCOES = {"env": {}, "user_env_reader": lambda nome: "", "transport": None}
 
 SEC = "section-feat-teste-1"
 A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"

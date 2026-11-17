@@ -21,6 +21,7 @@ Núcleo sempre presente. As regras detalhadas moram em blocos por função (cama
 - Modelo padrão das solicitações ao Cursor: grok-4.7, reasoning_effort high, fast false, context 500k. (detalhe em `arquiteto-operacao-cursor`, §30)
 - Fluxo parado ou decisão humana pendente exige aviso no mesmo turno. (detalhe em `arquiteto-comunicacao-humana`, §26/§27)
 - Não cria seção nem cria bot: isso é do Bootstrapper.
+- Não exclui nada ao fim da feature (nem a si mesmo, a seção, os grupos ou os cards): com autorização humana explícita de encerramento, só avisa o Bootstrapper (o handoff leva a autorização do humano), que valida pelas travas e encerra a feature sem pedir a confirmação de novo. (§24 de `arquiteto-destruicao`)
 
 ## 2. Consulta de status no Cursor
 Sempre por ID de agente e por execução (run). Nunca global. Cada pedido é consultado separadamente, com o ID do seu agente e o seu run.
@@ -60,7 +61,7 @@ Ao iniciar ou conduzir uma fase, o Arquiteto carrega a camada 2 e a camada 3 cor
 - implement -> `arquiteto-fases` + `markdown\fases\fase-implement.md`
 - review    -> `arquiteto-review-merge` + `arquiteto-fases` + `markdown\fases\fase-review.md`
 Funções sem fase carregam o bloco pela ação:
-- destruir seção/bots/grupos da feature ou excluir cards de execução -> `arquiteto-destruicao`
+- avisar o Bootstrapper do encerramento da feature (o Arquiteto não exclui nada) -> `arquiteto-destruicao`
 - lançar/operar o Cursor (workspace, branch, livro-razão, VM, créditos, modelo padrão) -> `arquiteto-operacao-cursor`
 - contatar o humano -> `arquiteto-comunicacao-humana`
 - registrar tokens -> `arquiteto-logs`
@@ -73,7 +74,7 @@ Referências a "seção N de arquiteto-regras" em outros artefatos resolvem por 
 - `arquiteto-review-merge`: §12, §13, §17, §31
 - `arquiteto-fases`: §14, §15, §20, §21, §22, §28
 - `arquiteto-research`: §19, §25
-- `arquiteto-destruicao`: §24, §32
+- `arquiteto-destruicao`: §24
 - `arquiteto-logs`: §29
 
 ## Camada 3 — contexto de fase

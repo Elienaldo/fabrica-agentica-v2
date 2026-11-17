@@ -2,12 +2,15 @@
 # -*- coding: utf-8 -*-
 """Destruição de seção por API interna (rascunho executável só com cliente injetado/fixture).
 
-Entrada do Arquiteto: este próprio arquivo (não há wrapper separado).
+Entrada do Bootstrapper: este próprio arquivo (não há wrapper separado). Desde 17/11/2026 o
+Bootstrapper dispara e controla o script inteiro; o Arquiteto só o avisa do encerramento
+(handoff com seção, Arquiteto e grupos) e não roda este script.
 
 Padrão: dry-run (não exclui). Execução real exige --executar, o mesmo --secao-id
 em --confirmar-exclusao e --confirmar-bots com exatamente um item: o ID do
-Arquiteto, único bot da seção na V2. O --secao-id é fornecido pelo Arquiteto, que
-está dentro da seção, conhece o ID dela e dispara este script.
+Arquiteto, único bot da seção na V2. O --secao-id vem do handoff do Arquiteto e o
+Bootstrapper o valida (ListSections e dry-run) e só executa com a autorização do handoff do
+Arquiteto da seção (ou, fora do handoff ou com divergência, depois da confirmação direta do humano).
 Cliente: --fixture (simulado) ou --api-real (grokbot_api_client.GrokBotApiClient,
 sessão do app no Windows, token só em memória; escrita só com --executar).
 Sem nenhum dos dois, o cliente real é recusado e nada é lido.
@@ -22,7 +25,7 @@ Etapas: (1) IDs da seção, (2) lista geral de bots, (3) cruzamento,
 (4) exclusão do Arquiteto, primeiro e único alvo (único bot da seção na V2),
 (5) só então exclusão da seção, se o Arquiteto foi excluído com sucesso.
 Uma passagem só: uma tentativa por bot, sem retry.
-Ordem com o Arquiteto: o Arquiteto NÃO se autoexclui; ele só dispara este script.
+Ordem com o Arquiteto: o Arquiteto NÃO se autoexclui nem roda este script; só o Bootstrapper roda.
 O script exclui o Arquiteto na etapa 4 (por isso o ID dele, e só ele, vai em
 --confirmar-bots), depois a seção (etapa 5) e por fim os grupos (etapa 6). O ID do
 Arquiteto, para a confirmação e para a guarda dos grupos, é resolvido do inventário
@@ -32,11 +35,10 @@ ou com item que não seja o Arquiteto; seção sem Arquiteto ou com mais de um; 
 com qualquer bot além do Arquiteto. Aviso ao humano: todo bloqueio ou falha sai com
 needs_human_notification=true, exit 2 (bloqueio) ou 1 (falha) e o motivo em "erro" e
 em "motivos_aviso_humano"; Arquiteto não resolvido (grupos.arquiteto_fixo sem id)
-também liga o aviso, inclusive no dry-run. Só no bloqueio da checagem inicial
-(exit 2, stage preflight) o script faz um POST de aviso à rotina do Bootstrapper
-(notificacao_bootstrapper.py, variáveis FABRICA_V2_WEBHOOK_URL/KEY; uma tentativa,
-sem retry) e grava o resultado em "notification". Nos demais casos não envia nada:
-o Arquiteto lê o resultado e avisa o humano.
+também liga o aviso, inclusive no dry-run. O script não envia aviso por webhook (desde
+17/11/2026 o chamador é o próprio Bootstrapper, que não avisa a si mesmo): o
+Bootstrapper lê o resultado (exit, stage, removed, erro, motivos_aviso_humano) e avisa o
+humano. notificacao_bootstrapper.py não é mais chamado por este script.
 Bot protegido: SOMENTE o Bootstrapper (fixo, sempre existe, nunca é alvo), casado por
 ID (BOOTSTRAPPER_ID) OU por nome exato "Bootstrapper" (NFC + strip, sensível a
 maiúsculas); na seção alvo ou em --confirmar-bots, aborta antes de excluir.
@@ -574,7 +576,7 @@ def montar_resultado(
         orfaos = []
         protegidos = []
     # Aviso ao humano (mecanismo existente: needs_human_notification no resultado/log,
-    # lido pelo Arquiteto). Bloqueio/falha, Arquiteto não resolvido na seção
+    # lido pelo Bootstrapper, que chama o script). Bloqueio/falha, Arquiteto não resolvido na seção
     # (grupos.arquiteto_fixo sem id) e grupos recusados/pendentes ligam o aviso.
     g = grupos or {}
     motivos_aviso: List[str] = []
@@ -819,7 +821,7 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
     parser.add_argument("--secao-id", required=True,
-                        help="ID da seção alvo, fornecido pelo Arquiteto que está nela (ex.: section-mwcoucz9-1)")
+                        help="ID da seção alvo, vindo do handoff do Arquiteto e validado pelo Bootstrapper (ex.: section-mwcoucz9-1)")
     parser.add_argument(
         "--executar",
         action="store_true",
@@ -884,35 +886,8 @@ def default_log_dir() -> Path:
     return Path(__file__).resolve().parent / "logs"
 
 
-# Opções do notificador (testes injetam env/transport falsos; padrão: ambiente real).
-NOTIFICACAO_OPCOES: Dict[str, Any] = {}
-
-
-def avisar_bloqueio_inicial(result: Dict[str, Any], exit_code: int, log_dir: Optional[Path]) -> None:
-    """Aviso ao Bootstrapper só no bloqueio do preflight; nunca muda status, erro nem exit."""
-    if exit_code != EXIT_BLOQUEADO or result.get("stage") != "preflight":
-        return
-    try:
-        pasta = str(Path(__file__).resolve().parent)
-        if pasta not in sys.path:
-            sys.path.insert(0, pasta)
-        from notificacao_bootstrapper import notify_bloqueio_inicial  # noqa: E402
-
-        notify_bloqueio_inicial(result, exit_code, result.get("execution_id"), **NOTIFICACAO_OPCOES)
-    except Exception as exc:
-        result["notification"] = {"status": "notifier_error", "delivery_confirmed": False,
-                                  "error_type": type(exc).__name__}
-    if "notification" in result and log_dir is not None:
-        try:
-            escrever_log(log_dir, {"timestamp": agora_iso(), "execution_id": result.get("execution_id"),
-                                   "notification": result["notification"]})
-        except Exception:
-            pass
-
-
 def emitir_resultado(result: Dict[str, Any], log_dir: Optional[Path]) -> int:
     code = codigo_saida(result)
-    avisar_bloqueio_inicial(result, code, log_dir)
     json.dump(result, sys.stdout, ensure_ascii=False, indent=2)
     sys.stdout.write("\n")
     return code

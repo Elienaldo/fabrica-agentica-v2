@@ -21,11 +21,11 @@ A V2 foi otimizada para reduzir o consumo de tokens. A auditoria de consumo most
 
 | Bot | Tipo | Função |
 | --- | --- | --- |
-| **Bootstrapper** | Permanente (porta de entrada) | Recebe o pedido do humano, cria o nome da feature (`feat-...` ou `fix-...`), roda o script de criação de seção, confere a seção, cria o Arquiteto dentro dela e sai de cena. Também recebe os avisos dos scripts e repassa ao humano. Não classifica, não fala com o Cursor e não executa destruição. Ficha: `markdown/modelos/bootstrapper.md`. Skills: `bootstrapper-start` e `bootstrapper-criacao-arquiteto`. |
-| **Arquiteto** | Um por feature, dentro da seção da feature | Conduz a feature de ponta a ponta: classifica, decide a fase, conduz research, plan, implement e review, opera o Cursor, faz o merge e, só com autorização humana explícita, dispara a destruição. É o único bot da feature. Ficha: `markdown/modelos/arquiteto.md`. Skills: `arquiteto-regras` (camada 1) e 7 de camada 2. Criado dinamicamente pelo Bootstrapper, um por feature, logo depois da seção; nunca é criado à mão no app. |
+| **Bootstrapper** | Permanente (porta de entrada) | Recebe o pedido do humano, cria o nome da feature (`feat-...` ou `fix-...`), roda o script de criação de seção, confere a seção, cria o Arquiteto dentro dela e sai de cena. Também repassa o aviso do webhook de criação ao humano e, no fim da feature, recebe o handoff de encerramento do Arquiteto, valida as travas e roda `destruir-secao-api.py` inteiro (Arquiteto, seção e grupos). Não classifica e não fala com o Cursor. Ficha: `markdown/modelos/bootstrapper.md`. Skills: `bootstrapper-start`, `bootstrapper-criacao-arquiteto` e `bootstrapper-encerramento`. |
+| **Arquiteto** | Um por feature, dentro da seção da feature | Conduz a feature de ponta a ponta: classifica, decide a fase, conduz research, plan, implement e review, opera o Cursor, faz o merge e, com autorização humana explícita de encerramento, só avisa o Bootstrapper (não exclui nada, nem a si mesmo). É o único bot da feature. Ficha: `markdown/modelos/arquiteto.md`. Skills: `arquiteto-regras` (camada 1) e 7 de camada 2. Criado dinamicamente pelo Bootstrapper, um por feature, logo depois da seção; nunca é criado à mão no app. |
 | **Âncora V2** | Permanente, de apoio | Não participa da feature. O script de criação usa o Âncora V2 para abrir a seção nova e depois o devolve à seção Fábrica Agêntica V2. |
 
-**Bootstrapper com dois papéis, por design:** (1) dar a partida de cada feature — criar o nome, a seção e o Arquiteto — e sair de cena; (2) repassar ao humano os avisos de bloqueio dos webhooks. O aviso de bloqueio da destruição pode chegar quando o Arquiteto da feature já não existe, então a devolução ao humano fica com o Bootstrapper.
+**Bootstrapper com dois papéis, por design:** (1) dar a partida de cada feature — criar o nome, a seção e o Arquiteto — e sair de cena; (2) encerrar a feature (validar o handoff do Arquiteto e rodar a destruição). O encerramento fica com o Bootstrapper porque ele é fixo e permanente: o Arquiteto é excluído nessa mesma execução e não pode encerrar a própria feature. Ele também repassa ao humano o aviso do webhook de criação.
 
 **Cursor:** agentes de nuvem que escrevem o código numa VM própria, em branch própria. Só o Arquiteto abre sessão no Cursor.
 
@@ -75,26 +75,27 @@ flowchart LR
 
 ## 5. Destruição da feature
 
-- Quem roda: o Arquiteto, só com autorização humana explícita de alvo e alcance. Merge ou fim da feature, sozinhos, não autorizam.
+- Quem roda: o **Bootstrapper**, depois do handoff de encerramento do Arquiteto (nome da feature, id da seção, id do Arquiteto, ids e nomes dos grupos, texto e hora da autorização humana); esse handoff já traz a autorização do humano e o Bootstrapper o executa sem pedir a confirmação de novo, se passar nas travas (remetente = Arquiteto da seção, dry-run, sem divergência). Fora do handoff, ou com divergência, ele para e confirma direto com o humano (alvo e alcance). A autorização repassada por outro bot não vale como aprovação. O Arquiteto só avisa e não exclui nada, nem a si mesmo. Merge ou fim da feature, sozinhos, não autorizam.
+- Como o Bootstrapper processa o aviso: valida a seção por `ListSections` e pelo dry-run, só pergunta ao humano se houver divergência, roda com `--api-real --executar` e as confirmações exatas e reporta o resultado (skill `bootstrapper-encerramento`).
 - Script: `scripts/destruir-secao-api.py`, com `grokbot_api_client.py` e `destruir-secao-config.json` (rota única: API interna; bot, seção e grupos validados no bloco `api_interna`).
 - Ordem, em uma passagem: Arquiteto (etapa 4), seção (etapa 5) e grupos `<fase>-<feature>` (etapa 6, só com `--confirmar-grupos`).
 - Bots protegidos: o cliente da API (`FIXOS_POR_ID` em `scripts/grokbot_api_client.py`) recusa excluir três: Âncora V2 (`3aa31f55…`), Mestre de obras (`c48d6f40…`) e Bootstrapper (`f99cfa31…`); o script de destruição, no plano, bloqueia o Bootstrapper. Seções protegidas: Fábrica Agêntica V2, Fábrica Agêntica e Uso Pessoal.
 - Sem `--executar` o script só planeja (dry-run).
 - Contratos: `contratos/contrato-destruicao-api-interna.md` e `contratos/contrato-webhook-destruicao.md`. Desenho: `excalidraw/destruicao-api-interna.excalidraw`.
 
-## 6. Avisos por webhook
+## 6. Avisos por webhook (só criação)
 
-| | Criação | Destruição |
-| --- | --- | --- |
-| Quando envia | Sempre ao terminar (sucesso ou falha) | Só no bloqueio inicial (exit 2, `stage=preflight`) |
-| Notificador | `scripts/notificacao_criacao_v2.py` | `scripts/notificacao_bootstrapper.py` |
-| Rotina do Bootstrapper | "Fábrica V2 — bloqueio criação" | "Fábrica V2 — bloqueio destruição" |
-| Variáveis | `FABRICA_V2_CRIACAO_WEBHOOK_URL` / `_KEY` | `FABRICA_V2_WEBHOOK_URL` / `_KEY` |
+| | Criação |
+| --- | --- |
+| Quando envia | Sempre ao terminar (sucesso ou falha) |
+| Notificador | `scripts/notificacao_criacao_v2.py` |
+| Rotina do Bootstrapper | "Fábrica V2 — bloqueio criação" |
+| Variáveis | `FABRICA_V2_CRIACAO_WEBHOOK_URL` / `_KEY` |
 
 - As rotinas só registram e avisam o humano. Não criam, não executam, não corrigem e não acionam outro bot.
-- Os scripts leem as variáveis de ambiente da tabela acima. Só enxergam as variáveis em terminais abertos depois da gravação.
+- O script de criação lê as variáveis de ambiente da tabela acima. Só enxergam as variáveis em terminais abertos depois da gravação.
 - Uma tentativa, sem retry. HTTP 200 não prova que o humano leu.
-- Nos demais erros da destruição nada é enviado: o resultado traz `needs_human_notification` e o Arquiteto repassa.
+- A destruição não envia webhook (desde 17/11/2026): o Bootstrapper roda o script, lê o resultado (`needs_human_notification`, `erro`, `motivos_aviso_humano`) e avisa o humano. `scripts/notificacao_bootstrapper.py`, as variáveis `FABRICA_V2_WEBHOOK_URL` / `_KEY` e a rotina "Fábrica V2 — bloqueio destruição" ficam sem uso.
 - Testes puros (sem rede): `scripts/test_notificacao_criacao_v2.py`, `scripts/test_notificacao_bootstrapper.py` e `scripts/test_destruir_secao_api.py`.
 
 ## 7. Padrões
@@ -112,7 +113,7 @@ flowchart LR
 Fabrica-Agentica-V2/
 ├── README.md
 ├── checklist-v2.html          # Kanban da V2 (estado no navegador)
-├── skills/                    # espelho das skills do box: arquiteto-* (8) e bootstrapper-* (2)
+├── skills/                    # espelho das skills do box: arquiteto-* (8) e bootstrapper-* (3)
 ├── contratos/
 │   ├── contrato-webhook-criacao.md
 │   ├── contrato-webhook-destruicao.md

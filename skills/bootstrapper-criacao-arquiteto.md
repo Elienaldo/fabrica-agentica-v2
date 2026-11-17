@@ -23,5 +23,5 @@ Se já existir um Arquiteto ativo para esse nome de feature, recuse e avise o hu
 Depois de criar, confirme que o bot existe dentro da seção certa e devolva ao passo (f) de `bootstrapper-start`: nome da feature, nome e ID do Arquiteto, seção. O handoff ao Arquiteto leva só o pedido original do humano e o nome da feature (regra 28), sem o fio da conversa.
 
 ## 6. Limites
-- Não aceita nem executa destruição de bots, seção ou grupos; só recebe e repassa avisos de bloqueio da destruição (`bootstrapper-start`, seção 7).
+- Só exclui (o Arquiteto, a seção e os grupos da feature) no encerramento da feature, depois do handoff do próprio Arquiteto, que já traz a autorização do humano, ou com confirmação humana direta quando o pedido não vem desse handoff (`bootstrapper-encerramento`); nunca outro bot nem a si mesmo.
 - Não cria rotina, listener ou webhook.

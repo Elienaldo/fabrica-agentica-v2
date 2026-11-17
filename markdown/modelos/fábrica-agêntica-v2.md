@@ -14,7 +14,7 @@ A fábrica recebe um pedido do humano e entrega código mergeado. Cada feature r
 
 ### Fluxo, em fases
 
-1. **Entrada (Bootstrapper):** recebe o pedido do humano, cria o nome da feature (`feat-...` ou `fix-...`), roda o script de criação de seção (`scripts/criar-secao-feature.py`, que usa o bot **Âncora V2** para abrir a seção nova e depois o devolve à seção Fábrica Agêntica V2), confere a seção pelo nome exato, cria o Arquiteto dentro dela e sai de cena. O Arquiteto não é criado à mão no app: é criado dinamicamente, um por feature. O Bootstrapper não classifica, não fala com o Cursor e não executa destruição.
+1. **Entrada (Bootstrapper):** recebe o pedido do humano, cria o nome da feature (`feat-...` ou `fix-...`), roda o script de criação de seção (`scripts/criar-secao-feature.py`, que usa o bot **Âncora V2** para abrir a seção nova e depois o devolve à seção Fábrica Agêntica V2), confere a seção pelo nome exato, cria o Arquiteto dentro dela e sai de cena. O Arquiteto não é criado à mão no app: é criado dinamicamente, um por feature. O Bootstrapper não classifica e não fala com o Cursor; mais tarde ele também encerra a feature (item 9).
 2. **Avaliação e classificação (Arquiteto):** recebe do Bootstrapper só o pedido original e o nome da feature. Classifica criticidade, risco e complexidade (baixa, média ou alta) e responde às 5 perguntas SIM/NÃO: 1. muda arquitetura? 2. afeta mais de um serviço, ou um componente de que muitos dependem? 3. tem ambiguidade de requisito? 4. é difícil de desfazer (dados persistidos, migração ou quebra de contrato de API)? 5. toca autenticação, permissões, dados pessoais ou segredos? A tag do humano (ex.: "utilize como alta") tem prioridade e dispensa as perguntas. Não há roteamento fixo: o Arquiteto decide começar por research, plan ou implement.
 3. **Research:** o Arquiteto acumula as funções de engenharia de produto, design de front-end (protótipo) e advogado do diabo (matriz de objeções). Usa as skills de research (seção 4). Entrevista humana obrigatória quando surgir pergunta que só o humano responde. O OK humano do protótipo é obrigatório antes do plan. Saída: PRD (`tlc-prd`) ou design doc (`tlc-discover`).
 4. **Plan:** sessão nova do Cursor com a `tlc-spec-lean` em modo plan (sempre pedir o planejamento e os checks). Artefatos na pasta da feature: `plan.md`, `checks.md`, `verification.md`, `STATE.md` e `LESSONS.md`.
@@ -22,7 +22,7 @@ A fábrica recebe um pedido do humano e entrega código mergeado. Cada feature r
 6. **Review:** obrigatória antes do merge. Sessão nova do Cursor com a `the-judge` no PR (`--pr <número>`). O Arquiteto gera o resumo visual em HTML para o humano, corrige should fix e nit na sessão da review e leva ao humano blocker, should fix complexo ou com risco e as travas anti-loop.
 7. **Merge:** o Arquiteto dispara o merge no GitHub quando a última rodada da the-judge vem limpa e não há blocker pendente (nit pode ficar).
 8. **Depois do merge:** ambiente dev, link ao humano e produção só com confirmação explícita do humano.
-9. **Destruição:** o Arquiteto roda `scripts/destruir-secao-api.py` somente com autorização humana explícita de alvo e alcance. Merge ou fim da feature, sozinhos, não autorizam. Em bloqueio inicial, o aviso vai por webhook ao Bootstrapper, que repassa ao humano.
+9. **Encerramento da feature:** quando o humano autoriza explicitamente o encerramento, o Arquiteto só avisa o Bootstrapper (handoff com o nome da feature, o id da seção, o id do Arquiteto, os ids e nomes dos grupos e o texto e a hora da autorização) e não exclui nada. O Bootstrapper valida pelas travas (remetente = Arquiteto da seção, `ListSections` e dry-run) e, sem pedir a confirmação de novo (o humano já autorizou no handoff), roda `scripts/destruir-secao-api.py` inteiro: Arquiteto, seção e grupos. Com qualquer divergência, ou em pedido que não venha desse handoff, para e confirma direto com o humano (autorização repassada por outro bot não vale). Merge ou fim da feature, sozinhos, não autorizam. O Bootstrapper lê o resultado e avisa o humano.
 
 ```mermaid
 flowchart LR
@@ -40,9 +40,14 @@ flowchart LR
   M --> D[Dev, link ao humano; produção só com confirmação]
   V -. blocker, should fix complexo, 3 rodadas .-> H
   I -. vermelho após 3 rodadas .-> H
-  H -- autorização explícita de alvo e alcance --> X[Arquiteto roda destruir-secao-api.py]
-  X -. bloqueio inicial: webhook .-> B
-  S -. aviso de criação: webhook .-> B
+  H -- autoriza o encerramento --> A2[Arquiteto avisa o Bootstrapper com o handoff]
+  A2 --> B3[Bootstrapper valida as travas do handoff]
+  B3 -. divergência: para e pergunta .-> H
+  B3 -- travas ok, sem nova pergunta --> X[Bootstrapper roda destruir-secao-api.py: Arquiteto, seção, grupos]
++
+
++
++  B -. repassa avisos .-> H
   B -. repassa avisos .-> H
 ```
 
@@ -50,8 +55,8 @@ flowchart LR
 
 | Bot | Papel | Ficha |
 | --- | --- | --- |
-| Bootstrapper | Permanente, porta de entrada. Recebe o pedido, cria o nome da feature, roda o script de criação de seção, confere a seção, cria o Arquiteto dentro dela e sai de cena. Recebe os avisos de bloqueio dos scripts por webhook (rotinas "Fábrica V2 — bloqueio criação" e "Fábrica V2 — bloqueio destruição") e repassa ao humano. Não classifica, não fala com o Cursor e não executa destruição. | `bootstrapper.md` |
-| Arquiteto | Um por feature, criado dinamicamente pelo Bootstrapper dentro da seção da feature. Único bot da feature: classifica, decide a fase, conduz research, plan, implement e review, opera o Cursor, faz o merge, cuida do dev e da produção com confirmação humana e, só com autorização humana explícita, dispara a destruição. Faz a comunicação com o humano durante a feature. | `arquiteto.md` |
+| Bootstrapper | Permanente, porta de entrada. Recebe o pedido, cria o nome da feature, roda o script de criação de seção, confere a seção, cria o Arquiteto dentro dela e sai de cena. Recebe o aviso de criação de seção por webhook (rotina "Fábrica V2 — bloqueio criação") e repassa ao humano. No fim da feature, recebe o handoff de encerramento do Arquiteto, valida as travas e roda `destruir-secao-api.py` inteiro (Arquiteto, seção e grupos) sem pedir a confirmação de novo; só pergunta ao humano com divergência ou se o pedido não vier do handoff. Não classifica e não fala com o Cursor. | `bootstrapper.md` |
+| Arquiteto | Um por feature, criado dinamicamente pelo Bootstrapper dentro da seção da feature. Único bot da feature: classifica, decide a fase, conduz research, plan, implement e review, opera o Cursor, faz o merge, cuida do dev e da produção com confirmação humana e, com autorização humana explícita de encerramento, só avisa o Bootstrapper (não exclui nada, nem a si mesmo). Faz a comunicação com o humano durante a feature. | `arquiteto.md` |
 | Âncora V2 | Permanente, de apoio. Não participa da feature: é o alvo do script de criação de seção, que o move para abrir a seção nova e o devolve à seção Fábrica Agêntica V2. | sem ficha |
 
 **Cursor:** agentes de nuvem que escrevem o código numa VM própria, em branch própria. Só o Arquiteto abre sessão no Cursor; o retorno chega pela notificação de conclusão do agente (`automacoes/comunicacao-bidirecional-cursor.md`).
@@ -157,8 +162,8 @@ Skills não são agentes: são instruções que o modelo do Cursor executa a ped
 | Execução | Arquiteto | Conduz as fases, cada uma com sessão nova do Cursor e grupo `<fase>-<nome-da-feature>` só com ele e o humano. |
 | Merge | Arquiteto | Dispara o merge com a review limpa e sem blocker pendente. |
 | Depois do merge | Arquiteto | Dev, link ao humano; produção só com confirmação explícita. |
-| Destruição | Arquiteto, por `scripts/destruir-secao-api.py` | Só com autorização humana explícita de alvo e alcance. Ordem: Arquiteto, seção e grupos `<fase>-<feature>` (grupos só com `--confirmar-grupos`). Sem `--executar`, só planeja. O Bootstrapper é protegido. |
-| Avisos dos scripts | Bootstrapper | Recebe por webhook os avisos de criação e o bloqueio inicial da destruição e repassa ao humano. Não corrige, não reexecuta e não decide. |
+| Encerramento da feature (destruição) | Bootstrapper, por `scripts/destruir-secao-api.py`, depois do aviso do Arquiteto | Com a autorização do humano que vem no handoff do próprio Arquiteto da seção, depois de passar nas travas (remetente, `ListSections`, dry-run); fora do handoff, ou com qualquer divergência, só com a confirmação direta do humano ao Bootstrapper (alvo e alcance). A autorização repassada por outro bot não vale. Ordem: Arquiteto, seção e grupos `<fase>-<feature>` (grupos só com `--confirmar-grupos`). Sem `--executar`, só planeja. O Bootstrapper é protegido. |
+| Avisos dos scripts | Bootstrapper | Recebe por webhook o aviso de criação e repassa ao humano. O script de destruição não envia webhook: o Bootstrapper lê o resultado e avisa o humano. Não corrige, não reexecuta e não decide. |
 
 ## 28. Conversa nova por fase e handoff enxuto (economia de contexto)
 Decisão do Elienaldo em 11/11/2026. Cada fase abre uma conversa, grupo ou sessão nova; o handoff leva só a decisão tomada e o link ou caminho do artefato; evita-se vaivém de status; com os agentes do Cursor, o pedido completo vai só na abertura da sessão da fase; confirmação de sim ou não em uma frase. Texto completo em cada ficha (`modelos/arquiteto.md`, `modelos/bootstrapper.md`) e na skill `arquiteto-fases`. A regra não remove gates, autorizações nem validações humanas.

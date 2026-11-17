@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -150,16 +151,9 @@ class NotificadorTest(unittest.TestCase):
 
 
 class IntegracaoDestruicaoTest(unittest.TestCase):
-    def setUp(self):
-        self.original = dict(api.NOTIFICACAO_OPCOES)
+    """Desde 17/11/2026 o chamador do script é o Bootstrapper: o script não envia aviso por webhook."""
 
-    def tearDown(self):
-        api.NOTIFICACAO_OPCOES.clear()
-        api.NOTIFICACAO_OPCOES.update(self.original)
-
-    def rodar(self, argv, transport, client=None):
-        api.NOTIFICACAO_OPCOES.clear()
-        api.NOTIFICACAO_OPCOES.update({"env": ENV, "user_env_reader": SEM_USER, "transport": transport})
+    def rodar(self, argv, client=None):
         with tempfile.TemporaryDirectory() as tmp:
             out = io.StringIO()
             with redirect_stdout(out):
@@ -167,52 +161,44 @@ class IntegracaoDestruicaoTest(unittest.TestCase):
             log = (Path(tmp) / "destruir-secao-api.jsonl").read_text(encoding="utf-8").splitlines()
         return code, json.loads(out.getvalue()), [json.loads(x) for x in log]
 
-    def test_bloqueio_preflight_envia_e_preserva_exit(self):
-        t = Gravador()
+    def test_bloqueio_preflight_nao_envia_aviso_e_preserva_exit(self):
         with tempfile.TemporaryDirectory() as cfgdir:
             cfg = Path(cfgdir) / "cfg.json"
             cfg.write_text("{}", encoding="utf-8")
-            code, out, log = self.rodar(["--secao-id", "section-x", "--api-real", "--executar",
-                                         "--confirmar-exclusao", "section-x", "--confirmar-bots", "a",
-                                         "--config", str(cfg)], t)
+            with mock.patch.object(nb, "notify_bloqueio_inicial", side_effect=AssertionError("não deve enviar")), \
+                    mock.patch.object(nb, "_post", side_effect=AssertionError("não deve enviar")):
+                code, out, log = self.rodar(["--secao-id", "section-x", "--api-real", "--executar",
+                                             "--confirmar-exclusao", "section-x", "--confirmar-bots", "a",
+                                             "--config", str(cfg)])
         self.assertEqual(code, 2)
         self.assertEqual(out["status"], "bloqueado")
         self.assertTrue(out["erro"].startswith("rota API não liberada"))
-        self.assertEqual(out["notification"]["status"], "http_accepted")
-        self.assertEqual(len(t.calls), 1)
-        self.assertEqual(t.calls[0]["payload"]["erro"], out["erro"])
-        self.assertTrue(any("notification" in r for r in log))
+        self.assertTrue(out["needs_human_notification"])
+        self.assertNotIn("notification", out)
+        self.assertFalse(any("notification" in r for r in log))
 
-    def test_bloqueio_preflight_em_executar(self):
-        t = Gravador()
-        code, out, _ = self.rodar(["--secao-id", " "], t, client=object())
+    def test_bloqueio_preflight_em_executar_sem_aviso(self):
+        with mock.patch.object(nb, "notify_bloqueio_inicial", side_effect=AssertionError("não deve enviar")):
+            code, out, log = self.rodar(["--secao-id", " "], client=object())
         self.assertEqual(code, 2)
         self.assertEqual(out["stage"], "preflight")
-        self.assertEqual(out["notification"]["status"], "http_accepted")
-        self.assertEqual(len(t.calls), 1)
+        self.assertNotIn("notification", out)
+        self.assertTrue(out["needs_human_notification"])
 
-    def test_erro_no_notificador_nao_muda_resultado(self):
-        original = api.avisar_bloqueio_inicial
-        api.NOTIFICACAO_OPCOES.clear()
-        api.NOTIFICACAO_OPCOES.update({"inexistente": 1})  # força TypeError no notificador
-        r = {"status": "bloqueado", "erro": "x", "stage": "preflight", "execution_id": "e"}
-        api.avisar_bloqueio_inicial(r, 2, None)
-        self.assertEqual(r["notification"]["status"], "notifier_error")
-        self.assertEqual(r["erro"], "x")
-        self.assertEqual(api.codigo_saida(r), 2)
-        self.assertIs(api.avisar_bloqueio_inicial, original)
+    def test_script_nao_tem_mais_hook_de_aviso_ao_bootstrapper(self):
+        self.assertFalse(hasattr(api, "avisar_bloqueio_inicial"))
+        self.assertFalse(hasattr(api, "NOTIFICACAO_OPCOES"))
 
-    def test_nao_envia_fora_do_preflight(self):
+    def test_codigo_de_saida_independe_de_aviso(self):
         for r, code in (({"status": "falha", "erro": "x", "stage": "excluir-bots"}, 1),
                         ({"status": "sucesso", "erro": "", "stage": "concluido"}, 0),
-                        ({"status": "bloqueado", "erro": "x", "stage": "cruzamento"}, 2)):
-            t = Gravador()
-            api.NOTIFICACAO_OPCOES.clear()
-            api.NOTIFICACAO_OPCOES.update({"env": ENV, "user_env_reader": SEM_USER, "transport": t})
-            api.avisar_bloqueio_inicial(r, code, None)
-            self.assertEqual(t.calls, [])
-            self.assertNotIn("notification", r)
-
+                        ({"status": "bloqueado", "erro": "x", "stage": "preflight"}, 2),
+                        ({"status": "bloqueado", "erro": "x", "stage": "cruzar"}, 2)):
+            out = io.StringIO()
+            with mock.patch.object(nb, "notify_bloqueio_inicial", side_effect=AssertionError("não deve enviar")), \
+                    redirect_stdout(out):
+                self.assertEqual(api.emitir_resultado(dict(r), None), code)
+            self.assertNotIn("notification", json.loads(out.getvalue()))
 
 if __name__ == "__main__":
     unittest.main()

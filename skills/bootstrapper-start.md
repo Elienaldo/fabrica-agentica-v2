@@ -1,7 +1,7 @@
 ---
 name: Bootstrapper — start
 description: >-
-  Carregue ao receber uma feature nova do humano: nome da feature, script de criação de seção, verificação da seção, encerramento e comunicação com o humano. Carregue também quando chegar um aviso de bloqueio da destruição.
+  Carregue ao receber uma feature nova do humano: nome da feature, script de criação de seção, verificação da seção, encerramento e comunicação com o humano. Carregue também quando chegar um aviso de criação de seção. O encerramento da feature (handoff do Arquiteto) é a skill `bootstrapper-encerramento`.
 ---
 # Bootstrapper — start
 
@@ -39,8 +39,11 @@ Ao receber o ID do Arquiteto criado (`bootstrapper-criacao-arquiteto`), avise o 
 - Widget sempre com `allowCustom: true`; nunca um botão fictício "Outro".
 - Esta regra não cria aprovação redundante nem amplia autorizações.
 
-## 7. Aviso de bloqueio da destruição
-- O Bootstrapper acorda também quando chega um aviso de bloqueio da destruição.
-- Recebe a notificação automática de bloqueio do script `destruir-secao-api.py` e lê o resultado (campos `erro` e `motivos_aviso_humano`).
-- Avisa o humano em linguagem comum, com o motivo do bloqueio e a feature afetada.
-- Não corrige, não reexecuta e não decide nada sobre a destruição: só recebe e repassa avisos de bloqueio da destruição.
+## 7. Avisos de criação da seção
+- O Bootstrapper acorda também quando chega um aviso de criação de seção.
+- O script `criar-secao-feature.py`, ao terminar (sucesso ou falha, desde que haja nome de seção válido), faz uma tentativa de POST para a rotina do Bootstrapper "Fábrica V2 — bloqueio criação" (variáveis `FABRICA_V2_CRIACAO_WEBHOOK_URL` e `FABRICA_V2_CRIACAO_WEBHOOK_KEY`).
+- A rotina acorda o Bootstrapper, que só registra e avisa o humano no próprio chat: em sucesso, que a seção foi criada; em falha, o motivo da falha e a seção afetada. Não cria, não relança, não corrige e não aciona outro bot. HTTP 200 não prova que o humano leu.
+
+## 8. Encerramento da feature
+- Quando o Arquiteto avisa o encerramento (handoff com a autorização do humano) ou o humano pede o encerramento de uma feature, carregue `bootstrapper-encerramento`: o Bootstrapper valida o handoff pelas travas (`ListSections` e dry-run), roda `destruir-secao-api.py` (Arquiteto, depois a seção, depois os grupos) e reporta o resultado. Handoff do próprio Arquiteto que passa em todas as travas não pede nova confirmação do humano, porque ele já autorizou.
+- A confirmação direta do humano continua obrigatória quando o pedido não vem do handoff do próprio Arquiteto da seção (remetente = `arquiteto_id`, dentro de `secao_id`) e em qualquer divergência. A autorização repassada por qualquer outro bot não vale como aprovação. O Bootstrapper nunca é alvo da exclusão e não exclui bots por conta própria, fora dessa skill.

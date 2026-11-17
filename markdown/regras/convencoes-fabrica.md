@@ -26,7 +26,7 @@ Na V2, o único bot criado pela fábrica é o Arquiteto, e quem cria é o Bootst
 
 - O modelo do Arquiteto é a ficha `C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\markdown\modelos\arquiteto.md`: nome, job, anti-jobs, voz, quando acorda e como concreto. O Bootstrapper não cria o Arquiteto de cabeça nem a partir de descrição solta no pedido.
 - Se o pedido contradisser a ficha, vale a ficha; a divergência vai ao Elienaldo antes de criar.
-- Passos e limites da criação: skills `bootstrapper-start` e `bootstrapper-criacao-arquiteto`.
+- Passos e limites da criação: skills `bootstrapper-start` e `bootstrapper-criacao-arquiteto`. Encerramento da feature: skill `bootstrapper-encerramento`.
 
 **Por quê:** mantém cada Arquiteto igual ao que foi desenhado e aprovado.
 
@@ -45,7 +45,7 @@ Decisão do Elienaldo (12/11/2026): a regra 28 (conversa nova por fase, handoff 
 ## Regras do Arquiteto em 3 camadas (economia de contexto)
 Decisao do Elienaldo em 12/11/2026. A biblioteca de regras do Arquiteto e carregada em camadas, nao inteira a cada turno:
 - Camada 1 (`arquiteto-regras`): nucleo sempre presente, com o essencial, o gatilho de carregamento por fase e o indice dos blocos.
-- Camada 2 (7 skills por funcao): `arquiteto-fases`, `arquiteto-research`, `arquiteto-review-merge`, `arquiteto-destruicao`, `arquiteto-operacao-cursor`, `arquiteto-comunicacao-humana`, `arquiteto-logs` — carregadas so quando o Arquiteto assume aquela funcao.
+- Camada 2 (7 skills por funcao): `arquiteto-fases`, `arquiteto-research`, `arquiteto-review-merge`, `arquiteto-destruicao` (aviso de encerramento ao Bootstrapper), `arquiteto-operacao-cursor`, `arquiteto-comunicacao-humana`, `arquiteto-logs` — carregadas so quando o Arquiteto assume aquela funcao.
 - Camada 3: documentos de fase em `markdown\fases`, anexados sob demanda.
 A mensagem de handoff traz o nome da fase e dispara o carregamento das camadas 2 e 3. Biblioteca e documentacao sao mantidas alinhadas (regra de ouro). Nenhum gate, autorizacao ou validacao humana foi removido.
 

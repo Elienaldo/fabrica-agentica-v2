@@ -133,6 +133,10 @@ if(!feito){if(!cards.some(y=>y.title==='Diagramas Excalidraw da V2'))cards.push(
 {const k=KEY+':card-diagramas-pronto-20261115';let feito=false;try{feito=store&&store.getItem(k)}catch(e){}
 if(!feito){const x=cards.find(y=>y.title.startsWith('Diagramas Excalidraw da V2'));if(x){x.hist=x.hist||[];x.hist.push({v:x.ver||1,em:x.upd||'15/11/2026, 13:43:00',obs:x.obs||''});x.ver=(x.ver||1)+1;x.obs="Os 13 diagramas Excalidraw da V2 foram atualizados para a arquitetura V2 (sem backup, por autorização do humano): entrada só pelo Bootstrapper, Arquiteto como único bot da feature em todas as fases, grupos <fase>-<feature> só com Arquiteto e humano, sem grupo inicial nem prefixo canal-, destruição por destruir-secao-api.py (etapa 4 Arquiteto, 5 seção, 6 grupos) e Bootstrapper recebendo e repassando ao humano o aviso de bloqueio da destruição. Nenhum nome de bot da V1 ficou nos diagramas.";x.col='done';x.done=true;x.upd='15/11/2026, 13:43:00'}
  try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(k,'1')}}catch(e){}}}
+const ADD20261117=[{k:'add-sem-ancora-20261117',t:'Verificar criação de bot sem Âncora V2',obs:'Bootstrapper/Arquiteto criou bot na sessão recém-criada sem precisar do âncora V2. Verificar se continua conseguindo criar sem bot âncora.'},{k:'add-teste-todas-fases-20261117',t:'Fazer teste com feature que precise passar por todas as fases',obs:'Com um único orquestrador (o Arquiteto), sem grupo por fase, o histórico das outras fases se mistura; por isso vale testar o fluxo completo.'}];
+for(const m of ADD20261117){let feito=false;try{feito=store&&store.getItem(KEY+':'+m.k)}catch(e){}
+ if(!feito){if(!cards.some(y=>y.title===m.t))cards.push({id:Date.now()+Math.floor(Math.random()*1e6),title:m.t,col:'todo',done:false,obs:m.obs,ver:1,hist:[],upd:'17/11/2026, 12:15:00'});
+ try{if(store){store.setItem(KEY,JSON.stringify(cards));store.setItem(KEY+':'+m.k,'1')}}catch(e){}}}
 const save=()=>{try{if(store)store.setItem(KEY,JSON.stringify(cards))}catch(e){}};
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function render(){const b=document.getElementById('board');b.innerHTML='';

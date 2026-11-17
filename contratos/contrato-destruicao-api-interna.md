@@ -1,14 +1,15 @@
 # Contrato — destruição da feature por API interna (V2)
 
 ## Script
-- **Script real:** `C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\scripts\destruir-secao-api.py`, com o cliente `grokbot_api_client.py`, a configuração `destruir-secao-config.json` (bloco `api_interna`) e o notificador `notificacao_bootstrapper.py`, na mesma pasta.
+- **Script real:** `C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\scripts\destruir-secao-api.py`, com o cliente `grokbot_api_client.py`, e a configuração `destruir-secao-config.json` (bloco `api_interna`), na mesma pasta.
 - **Backend:** API interna do app Grok Bot (`aiserver.v1.GrokBotService`, protocolo Connect/JSON, `https://api2.cursor.sh`), usando a sessão do app.
 - **Log:** `logs\destruir-secao-api.jsonl` ao lado do script (ou `--log-dir`), sem segredos.
 
 ## Quem dispara
-- O **Arquiteto** dispara o script, informando `--secao-id` (ele está na seção e conhece o ID dela).
-- O Arquiteto **não se autoexclui**: quem o exclui é o script, na etapa 4.
-- Execução só com autorização humana explícita de alvo e escopo (`arquiteto-destruicao`).
+- O **Bootstrapper** dispara e controla o script inteiro (skill `bootstrapper-encerramento`). O `--secao-id` vem do handoff de encerramento que o Arquiteto envia ao Bootstrapper; o Bootstrapper o valida por `ListSections` e pelo dry-run.
+- O **Arquiteto não exclui nada, nem a si mesmo, e não roda o script**: ele só avisa o Bootstrapper (`arquiteto-destruicao`, seção 24), com o nome da feature, o id da seção, o id do Arquiteto, os ids e nomes dos grupos de fase e o texto e a hora da autorização humana. Quem exclui o Arquiteto é o script, na etapa 4.
+- Execução real só depois do dry-run e de uma destas autorizações: (1) o handoff do próprio Arquiteto da seção, que traz `autorizacao_texto` e `autorizacao_hora` e passa em todas as travas abaixo (decisão do Elienaldo em 17/11/2026: o humano já autorizou, o Bootstrapper não pede a confirmação de novo); ou (2) a confirmação direta do humano ao Bootstrapper, com alvo e alcance, obrigatória em pedido que não venha desse handoff (de outro bot, ou do humano fora do fluxo) e em qualquer divergência. A autorização repassada por qualquer outro bot não vale como aprovação.
+- Travas do handoff do Arquiteto: (a) o remetente é o bot de id igual a `arquiteto_id` e esse bot está dentro de `secao_id` (conferido por `ListSections`); (b) o dry-run é obrigatório antes de `--api-real --executar`; (c) se houver divergência o Bootstrapper PARA e pergunta ao humano: remetente diferente de `arquiteto_id`, seção que não bate, alvo protegido, alvo além do Arquiteto e dos grupos informados, grupos do dry-run diferentes dos do handoff, `needs_human_notification` verdadeiro ou qualquer campo faltando; (d) a ordem é Arquiteto, seção e grupos, e `--confirmar-grupos` só leva os ids exatos do handoff que batem com o dry-run.
 
 ## Parâmetros
 - `--secao-id` (obrigatório): ID da seção da feature.
@@ -45,17 +46,13 @@ Uma tentativa por item, sem retry. Falha ou estado incerto para tudo e mantém o
   - a seção tem qualquer bot além do Arquiteto;
   - a confirmação difere do plano, a seção é protegida ou o ID ou nome da seção diverge.
 - Todo bloqueio ou falha sai com `needs_human_notification=true`, exit 2 (bloqueio) ou 1 (falha) e o motivo registrado em `erro` e em `motivos_aviso_humano`.
-- Só no bloqueio inicial (exit 2, `stage=preflight`) o script faz um POST de aviso à rotina do **Bootstrapper** "Fábrica V2 — bloqueio destruição", com `erro` e `motivos_aviso_humano`; a rotina só registra e avisa o humano. Nos demais casos não envia nada e o Arquiteto repassa. Detalhes em `contrato-webhook-destruicao.md`.
-
-## Cards de execução
-- A exclusão dos cards de execução do Cursor da feature exige autorização humana explícita (regra 32).
-- Não é feita pelo `destruir-secao-api.py`.
+- O script não envia aviso por webhook (desde 17/11/2026): como o chamador é o próprio Bootstrapper, ele lê o resultado (exit, `stage`, `removed`, `erro`, `motivos_aviso_humano`) e avisa o humano. Detalhes em `contrato-webhook-destruicao.md`.
 
 ## Fora deste contrato
 - A proteção contra lançamento repetido não se aplica aqui: é regra de `arquiteto-operacao-cursor`.
 
 ## Variáveis de ambiente
-- `FABRICA_V2_WEBHOOK_URL` e `FABRICA_V2_WEBHOOK_KEY`, lidas por `notificacao_bootstrapper.py` (só no bloqueio inicial). Ainda a configurar pelo humano.
+- `FABRICA_V2_WEBHOOK_URL` e `FABRICA_V2_WEBHOOK_KEY` não são mais lidas por este script (o aviso por webhook foi retirado; `notificacao_bootstrapper.py` ficou sem chamador).
 - As variáveis antigas da fábrica anterior seguem só para a V1; a V2 não as lê.
 
 ## Segurança

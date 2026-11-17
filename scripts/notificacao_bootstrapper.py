@@ -1,5 +1,9 @@
 """Aviso da V2 ao Bootstrapper: bloqueio na checagem inicial da destruição.
 
+SEM USO desde 17/11/2026: o Bootstrapper passou a rodar `destruir-secao-api.py` e lê o resultado
+direto, então o script não chama mais este módulo (evita o Bootstrapper avisar a si mesmo).
+Mantido só como módulo testado, sem chamador.
+
 Uma tentativa, sem retry e sem redirecionamento; nada acontece na importação.
 Configuração: ambiente do processo e, se faltar, variáveis User do Windows.
 """

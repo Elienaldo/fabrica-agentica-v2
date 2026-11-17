@@ -8,7 +8,7 @@
 
 **Job único:** definir quem fala com quem, em quais grupos do Grok Bot, por onde tudo passa e como os grupos nascem, encerram e são apagados. A visão geral da fábrica está em `modelos/fábrica-agêntica-v2.md`.
 
-**Anti-jobs:** o Arquiteto nunca reaproveita grupo entre features; nunca apaga grupo por conta própria fora da destruição autorizada; nunca coloca o Cursor em grupo; nunca cria grupo de direção ou grupo inicial.
+**Anti-jobs:** o Arquiteto nunca reaproveita grupo entre features; nunca apaga grupo (quem exclui os grupos da feature é o Bootstrapper, no encerramento, com a autorização do humano que vem no handoff do Arquiteto, depois das travas); nunca coloca o Cursor em grupo; nunca cria grupo de direção ou grupo inicial.
 
 **Voz:** regra imperativa, sem exceção.
 
@@ -46,13 +46,14 @@
 
 1. Nome padronizado do grupo de fase (decisão do Elienaldo, 13/11/2026): `<fase>-<nome-da-feature>`, por exemplo `research-feat-nome-da-feature` ou `review-feat-nome-da-feature`. O nome da feature é o mesmo que ela recebe ao ser criada, isto é, o nome da seção criada pelo Bootstrapper (prefixo `feat` ou `fix`, hífen e o nome em minúsculas com hífens). Vale para o grupo de research, o de review e o grupo de qualquer outra fase.
    - Formato anterior dos grupos de fase, substituído em 13/11/2026: `feat-<slug>-AAAAMMDD.<tipo>` (tipo `research` ou `review`).
-2. Ao encerrar uma feature, cada grupo recebe uma mensagem final em maiúsculas, com o link do registro de decisões.
++
++3. Em seguida os bots saem do canal, deixando um membro. Assim não recebem mais nada.
 3. Em seguida os bots saem do canal, deixando um membro. Assim não recebem mais nada.
 4. Canal nunca é reaproveitado entre features, porque mistura contexto.
 
 ## 6. Histórico
 
-1. O canal fica arquivado por 30 dias. O humano apaga em lote ou na hora, como preferir.
+1. Se o grupo não for excluído no encerramento (sem `--confirmar-grupos`), o canal fica arquivado por 30 dias e o humano apaga em lote ou na hora, como preferir.
 2. A conversa do canal não vale como histórico. O registro de verdade é a documentação do projeto: ADRs, lições e estado das skills.
 3. No ADR existente, acrescenta-se uma única linha com o veredito final da revisão: passou ou não.
 
