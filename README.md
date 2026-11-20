@@ -56,7 +56,7 @@ flowchart LR
 - **Research:** o Arquiteto acumula engenharia de produto, protótipo e matriz de objeções. O OK humano do protótipo é obrigatório antes do plan.
 - **Plan e implement:** sessão nova do Cursor com a skill `tlc-spec-lean`.
 - **Review:** obrigatória antes do merge, com a `the-judge`. No máximo 3 rodadas.
-- **Depois do merge:** ambiente dev, link ao humano e produção só com confirmação explícita.
+- **Depois do merge:** ambiente dev, link ao humano e subida só com confirmação explícita, instalada em dev e prod (nunca só em prod). Logo depois de avisar que instalou nos dois, o Arquiteto pergunta ao humano se quer encerrar a feature, sem esperar o pedido; a pergunta não é autorização.
 - Detalhe de cada fase: `markdown/fases/fase-research.md`, `fase-plan.md`, `fase-implement.md` e `fase-review.md`.
 
 ## 3. Comunicação
@@ -75,7 +75,7 @@ flowchart LR
 
 ## 5. Destruição da feature
 
-- Quem roda: o **Bootstrapper**, depois do handoff de encerramento do Arquiteto (nome da feature, id da seção, id do Arquiteto, ids e nomes dos grupos, texto e hora da autorização humana); esse handoff já traz a autorização do humano e o Bootstrapper o executa sem pedir a confirmação de novo, se passar nas travas (remetente = Arquiteto da seção, dry-run, sem divergência). Fora do handoff, ou com divergência, ele para e confirma direto com o humano (alvo e alcance). A autorização repassada por outro bot não vale como aprovação. O Arquiteto só avisa e não exclui nada, nem a si mesmo. Merge ou fim da feature, sozinhos, não autorizam.
+- Quem roda: o **Bootstrapper**, depois do handoff de encerramento do Arquiteto (nome da feature, id da seção, id do Arquiteto, ids e nomes dos grupos, texto e hora da autorização humana e o ponteiro `autorizacao_ref` da mensagem do humano: conversa, posição e hora ISO); esse handoff já traz a autorização do humano e o Bootstrapper o executa sem pedir a confirmação de novo, se passar nas travas (remetente = Arquiteto da seção, dry-run, ponteiro conferido no histórico do Arquiteto, sem divergência). Fora do handoff, ou com divergência, ele para e confirma direto com o humano (alvo e alcance). A autorização repassada por outro bot não vale como aprovação. O Arquiteto só avisa e não exclui nada, nem a si mesmo. Merge ou fim da feature, sozinhos, não autorizam.
 - Como o Bootstrapper processa o aviso: valida a seção por `ListSections` e pelo dry-run, só pergunta ao humano se houver divergência, roda com `--api-real --executar` e as confirmações exatas e reporta o resultado (skill `bootstrapper-encerramento`).
 - Script: `scripts/destruir-secao-api.py`, com `grokbot_api_client.py` e `destruir-secao-config.json` (rota única: API interna; bot, seção e grupos validados no bloco `api_interna`).
 - Ordem, em uma passagem: Arquiteto (etapa 4), seção (etapa 5) e grupos `<fase>-<feature>` (etapa 6, só com `--confirmar-grupos`).

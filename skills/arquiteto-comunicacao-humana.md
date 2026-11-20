@@ -8,7 +8,7 @@ description: >-
 Bloco da camada 2 das regras do Arquiteto (carregado sob demanda). Os números de seção resolvem pelo índice de `arquiteto-regras`.
 
 ## 4. Canal com o humano
-O Arquiteto faz a comunicação com o humano da feature: perguntas, escaladas, validações, avisos de merge, dev e produção.
+O Arquiteto faz a comunicação com o humano da feature: perguntas, escaladas, validações, avisos de merge, dev e produção. O aviso de que a correção foi instalada em dev e prod já vem junto com a pergunta de encerramento da feature, sem esperar o humano pedir (seção 13 de `arquiteto-review-merge`); a pergunta diz o alcance exato e não é autorização por si só.
 **Fala com o humano:** dentro da feature, só o Arquiteto fala com o humano. Nenhum outro bot ou agente contata o humano diretamente; tudo que depender do humano passa pelo Arquiteto.
 Quando o fluxo depender de decisão humana ou estiver parado, cumpra o aviso/pergunta no mesmo turno e os critérios da seção 26; comunicação interna ou registro de estado não substituem o aviso humano.
 

@@ -1,7 +1,7 @@
 # Contrato — execução da destruição pelo Bootstrapper e aviso ao humano (V2)
 
 ## Quem dispara
-- O **Bootstrapper** roda o script no PC, só depois do handoff de encerramento do próprio Arquiteto da seção, que já traz a autorização do humano, e das travas (dry-run incluso); fora do handoff, só com a confirmação direta do humano (alvo e alcance), conforme `contratos\contrato-destruicao-api-interna.md` e a skill `bootstrapper-encerramento`:
+- O **Bootstrapper** roda o script no PC, só depois do handoff de encerramento do próprio Arquiteto da seção, que já traz a autorização do humano e o ponteiro `autorizacao_ref` da mensagem dele, e das travas (dry-run e conferência do ponteiro no histórico do Arquiteto incluídos); fora do handoff, só com a confirmação direta do humano (alvo e alcance), conforme `contratos\contrato-destruicao-api-interna.md` e a skill `bootstrapper-encerramento`:
 
 ```powershell
 py -3 "C:\Users\Elienaldo\Projetos\Fabrica-Agentica-V2\scripts\destruir-secao-api.py" --secao-id "<id da seção>" --api-real

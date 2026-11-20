@@ -67,5 +67,7 @@ A review começa com o Arquiteto solicitando ao Cursor uma nova sessão, com con
 1. O humano aprova o ambiente de dev.
 2. Após essa aprovação, o Arquiteto pergunta ao humano se ele quer subir para o ambiente de produção e fazer o build de prod.
 3. O Arquiteto só dispara o build de prod depois que o humano confirmar explicitamente. Ambiente de produção não pode ser gerado de forma automática sem confirmação humana.
+4. **A subida vale para os DOIS ambientes, dev e prod.** Com a confirmação, o Arquiteto pede ao modelo do Cursor (mesma sessão da review), no mesmo pedido, a instalação da correção em dev E em prod, e acompanha até os dois confirmarem. Nunca pede nem faz só prod. Se um falhar ou ficar pendente, não diz que subiu: avisa qual falhou e pede a decisão.
+5. **Pergunta de encerramento, logo depois.** No mesmo turno do aviso de que instalou nos dois ambientes, o Arquiteto pergunta ao humano se quer encerrar a feature, sem esperar o pedido, dizendo o alcance exato (Arquiteto, seção e grupos, sem volta). A pergunta não é autorização: só a resposta afirmativa explícita do humano gera o aviso ao Bootstrapper (`arquiteto-destruicao`, seção 24, com o ponteiro da mensagem dele). Sem resposta, resposta ambígua ou "depois", não há aviso e a feature segue aberta.
 
 Quando a fase REVIEW abrir grupo, ele se chama `review-<nome-da-feature>` (exemplo: `review-feat-nome-da-feature`), com o nome da feature igual ao da seção criada (prefixo `feat` ou `fix`, hífen e o nome em minúsculas com hífens). Regra em `../comunicacao.md`, seção 5.

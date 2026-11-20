@@ -21,8 +21,8 @@ A fábrica recebe um pedido do humano e entrega código mergeado. Cada feature r
 5. **Implement:** sessão nova do Cursor com a `tlc-spec-lean` em modo implement. Teste vermelho é parada e a asserção nunca é enfraquecida. Com tudo verde, o modelo do Cursor faz o push na branch da feature, e o push cria o PR.
 6. **Review:** obrigatória antes do merge. Sessão nova do Cursor com a `the-judge` no PR (`--pr <número>`). O Arquiteto gera o resumo visual em HTML para o humano, corrige should fix e nit na sessão da review e leva ao humano blocker, should fix complexo ou com risco e as travas anti-loop.
 7. **Merge:** o Arquiteto dispara o merge no GitHub quando a última rodada da the-judge vem limpa e não há blocker pendente (nit pode ficar).
-8. **Depois do merge:** ambiente dev, link ao humano e produção só com confirmação explícita do humano.
-9. **Encerramento da feature:** quando o humano autoriza explicitamente o encerramento, o Arquiteto só avisa o Bootstrapper (handoff com o nome da feature, o id da seção, o id do Arquiteto, os ids e nomes dos grupos e o texto e a hora da autorização) e não exclui nada. O Bootstrapper valida pelas travas (remetente = Arquiteto da seção, `ListSections` e dry-run) e, sem pedir a confirmação de novo (o humano já autorizou no handoff), roda `scripts/destruir-secao-api.py` inteiro: Arquiteto, seção e grupos. Com qualquer divergência, ou em pedido que não venha desse handoff, para e confirma direto com o humano (autorização repassada por outro bot não vale). Merge ou fim da feature, sozinhos, não autorizam. O Bootstrapper lê o resultado e avisa o humano.
+8. **Depois do merge:** ambiente dev, link ao humano e subida só com confirmação explícita do humano. A subida autorizada instala a correção em dev E prod (nunca só em prod). Logo depois de avisar que instalou nos dois, o Arquiteto pergunta ao humano se quer encerrar a feature, sem esperar o pedido; a pergunta não é autorização.
+9. **Encerramento da feature:** quando o humano autoriza explicitamente o encerramento, o Arquiteto só avisa o Bootstrapper (handoff com o nome da feature, o id da seção, o id do Arquiteto, os ids e nomes dos grupos o texto e a hora da autorização e o ponteiro `autorizacao_ref` da mensagem do humano: conversa do Arquiteto, posição e hora ISO) e não exclui nada. O Bootstrapper valida pelas travas (remetente = Arquiteto da seção, `ListSections`, dry-run e conferência do ponteiro: ele lê o histórico do Arquiteto e confere que a mensagem existe, é do humano e tem o texto e a hora do handoff) e, sem pedir a confirmação de novo (o humano já autorizou no handoff), roda `scripts/destruir-secao-api.py` inteiro: Arquiteto, seção e grupos. Com qualquer divergência, ou em pedido que não venha desse handoff, para e confirma direto com o humano (autorização repassada por outro bot não vale). Merge ou fim da feature, sozinhos, não autorizam. O Bootstrapper lê o resultado e avisa o humano.
 
 ```mermaid
 flowchart LR
@@ -37,11 +37,11 @@ flowchart LR
   P --> I
   I -- push cria o PR --> V[Review: the-judge]
   V -- limpa, sem blocker --> M[Arquiteto dispara o merge]
-  M --> D[Dev, link ao humano; produção só com confirmação]
+  M --> D[Dev, link ao humano; subida em dev e prod só com confirmação]
   V -. blocker, should fix complexo, 3 rodadas .-> H
   I -. vermelho após 3 rodadas .-> H
-  H -- autoriza o encerramento --> A2[Arquiteto avisa o Bootstrapper com o handoff]
-  A2 --> B3[Bootstrapper valida as travas do handoff]
+  H -- autoriza o encerramento --> A2[Arquiteto avisa o Bootstrapper com o handoff e o ponteiro da autorização]
+  A2 --> B3[Bootstrapper valida as travas e confere o ponteiro no histórico do Arquiteto]
   B3 -. divergência: para e pergunta .-> H
   B3 -- travas ok, sem nova pergunta --> X[Bootstrapper roda destruir-secao-api.py: Arquiteto, seção, grupos]
 +
@@ -95,7 +95,7 @@ O Arquiteto decide quais skills do fluxo serão usadas e passa essas decisões a
 - **Blocker é sempre humano.** Não se corrige blocker sem autorização humana; com a autorização (e, se houver, a sugestão de correção), a the-judge valida e, se passar, o merge segue sem nova avaliação humana.
 - Should fix complexo ou com risco escala ao humano.
 - Durante a feature, a comunicação com o humano é do Arquiteto, no grupo da fase. O Bootstrapper só fala com o humano no pedido e nos avisos dos scripts.
-- Gates humanos: OK do protótipo antes do plan; review obrigatória antes do merge (bypass só por escrito do humano); produção só com confirmação explícita; nenhum agente real em teste sem o ok do humano; destruição só com autorização explícita de alvo e alcance.
+- Gates humanos: OK do protótipo antes do plan; review obrigatória antes do merge (bypass só por escrito do humano); produção só com confirmação explícita (a subida vale para dev e prod); nenhum agente real em teste sem o ok do humano; destruição só com autorização explícita de alvo e alcance.
 
 ### 2.7 Regra de ouro de atualização
 
@@ -161,8 +161,8 @@ Skills não são agentes: são instruções que o modelo do Cursor executa a ped
 | Criação | Bootstrapper | Confere a seção pelo nome exato e cria nela o Arquiteto exclusivo da feature; entrega ao humano o nome da feature, a confirmação da seção e o ID do Arquiteto; sai de cena. |
 | Execução | Arquiteto | Conduz as fases, cada uma com sessão nova do Cursor e grupo `<fase>-<nome-da-feature>` só com ele e o humano. |
 | Merge | Arquiteto | Dispara o merge com a review limpa e sem blocker pendente. |
-| Depois do merge | Arquiteto | Dev, link ao humano; produção só com confirmação explícita. |
-| Encerramento da feature (destruição) | Bootstrapper, por `scripts/destruir-secao-api.py`, depois do aviso do Arquiteto | Com a autorização do humano que vem no handoff do próprio Arquiteto da seção, depois de passar nas travas (remetente, `ListSections`, dry-run); fora do handoff, ou com qualquer divergência, só com a confirmação direta do humano ao Bootstrapper (alvo e alcance). A autorização repassada por outro bot não vale. Ordem: Arquiteto, seção e grupos `<fase>-<feature>` (grupos só com `--confirmar-grupos`). Sem `--executar`, só planeja. O Bootstrapper é protegido. |
+| Depois do merge | Arquiteto | Dev, link ao humano; subida só com confirmação explícita, instalada em dev e prod; logo depois, pergunta ao humano se quer encerrar a feature (a pergunta não é autorização). |
+| Encerramento da feature (destruição) | Bootstrapper, por `scripts/destruir-secao-api.py`, depois do aviso do Arquiteto | Com a autorização do humano que vem no handoff do próprio Arquiteto da seção, depois de passar nas travas (remetente, `ListSections`, dry-run, ponteiro da autorização conferido no histórico do Arquiteto); fora do handoff, ou com qualquer divergência, só com a confirmação direta do humano ao Bootstrapper (alvo e alcance). A autorização repassada por outro bot não vale. Ordem: Arquiteto, seção e grupos `<fase>-<feature>` (grupos só com `--confirmar-grupos`). Sem `--executar`, só planeja. O Bootstrapper é protegido. |
 | Avisos dos scripts | Bootstrapper | Recebe por webhook o aviso de criação e repassa ao humano. O script de destruição não envia webhook: o Bootstrapper lê o resultado e avisa o humano. Não corrige, não reexecuta e não decide. |
 
 ## 28. Conversa nova por fase e handoff enxuto (economia de contexto)
